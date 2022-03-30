@@ -1,2 +1,2 @@
-# DATS6103-Project-Team6
-Spring 2022 DATS6103: Team6 Project Repo
+# DATS6103-Project-Team1
+Spring 2022 DATS6103: Team1 Project Repo
