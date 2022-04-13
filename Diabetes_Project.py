@@ -31,12 +31,13 @@ def violin_plot_func(data, cat_col, cont_col):
     Data: name of pandas dataframe containing the columns
     cat_col: name of column that will be used to split the violin plots
     cont_col: continuous function'''
-    for i in len(data.cat_col.unique()):
-        globals()['group%s' % i] = data[data.cat_col.unique[i]]
+    for i in range(len(data[cat_col].unique())):
+        globals()['group%s' % i] = data[data[cat_col]==i]
     cat_list = []
-    for i in len(data.cat_col.unique()):
-        cat_list.append(list(globals()['group%s' % i].cont_col))
-    pos_list = [np.arange(1,len(data.cat_col.unique())+1)]
+    for i in range(len(data[cat_col].unique())):
+        cat_list.append(list(globals()['group%s' % i][cont_col]))
+    pos = np.arange(1,len(data[cat_col].unique())+1)
+    pos_list = np.ndarray.tolist(pos)
     plt.violinplot(cat_list, positions = pos_list)
     plt.xlabel(cat_col)
     plt.ylabel(cont_col)
@@ -181,9 +182,21 @@ def two_sample_test(group1, group2, alpha = 0.05, decimals = 3):
         print (f"Your z-score was {z_stat} and your p-value was  {p_value}, which is greater than 0.05. We therefore fail to reject our null hypothesis")
     return 
 
+
+
+
 #%%
 #Read in csv
 diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
+
+#Testing the functions work
+# categorical_contigency_base(diabetes['Diabetes_012'], diabetes['HighBP'])
+# categorical_contigency_prop_whole(diabetes['Diabetes_012'], diabetes['HighBP'])
+# categorical_contigency_prop_col(diabetes['Diabetes_012'], diabetes['HighBP'])
+# categorical_contigency_prop_row(diabetes['Diabetes_012'], diabetes['HighBP'])
+# chi_square_test(diabetes['Diabetes_012'], diabetes['HighBP'])
+# violin_plot_func(diabetes, 'Diabetes_012', 'Age')
+# two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
 
