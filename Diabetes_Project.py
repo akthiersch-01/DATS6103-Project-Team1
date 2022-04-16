@@ -6,7 +6,8 @@ import os
 import mlxtend
 import seaborn as sns
 import matplotlib.pyplot as plt
-import math 
+import math
+import tabulate
 import scipy.stats as stats
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
@@ -20,7 +21,6 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from statsmodels.stats.weightstats import ztest as ztest
-
 #%%
 #Let's define some key functions here that'll help us throughout the rest of this
 
@@ -42,6 +42,52 @@ def violin_plot_func(data, cat_col, cont_col):
     plt.xlabel(cat_col)
     plt.ylabel(cont_col)
     plt.show()
+
+
+#Category plot function
+def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, col=None, col_wrap=2, legend_labels=None,
+                xticks=None):
+    '''
+    Function will take in a datatset and two column names, one categorical and one continuous. Other parameters are
+    optional to assist in plot customization.
+    :param data: name of pandas dataframe containing the columns
+    :param cat_col: x axis value
+    :param cont_col: y axis value
+    :param kind: kind of sns plot. Default set to violin
+    :param hue: name of column to split the violin plot into categories. Default set to None
+    :param split: bool to set hue split into two halves. Default set to False
+    :param col: categorical variable to facet the grid
+    :param col_wrap: wraps the columns at this width. Default set to 2
+    :param legend_labels: labels to set for legend. Default set to None
+    :param xticks: labels to set for xticks. Default set to None
+    '''
+    # check if hue is set
+    if hue:
+        hue = hue
+        if data[hue].unique().size == 2:
+            split = True
+
+    # check if col is set
+    if col:
+        col = col
+
+    # create catplot
+    sns.set_palette('hls')
+    chart = sns.catplot(data=data, x=cat_col, y=cont_col, kind=kind, hue=hue, split=split, col=col, col_wrap=col_wrap)
+
+    # edit legend labels if provided
+    if legend_labels:
+        for index in range(len(legend_labels)):
+            chart._legend.texts[index].set_text(legend_labels[index])
+
+    # edit xticks if provided
+    if xticks:
+        plt.xticks(xticks[0], xticks[1])
+
+    plt.xlabel(cat_col)
+    plt.ylabel(cont_col)
+    plt.show()
+
 
 #Scatter plot function
 
@@ -199,10 +245,42 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 # two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
-
+summary_stats = pd.DataFrame(diabetes.describe())
+summary_stats = summary_stats.reset_index()
+print(summary_stats.to_markdown())
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
+# BMI vs. Diabetes_012 by Sex and Income
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Income', col_wrap=4, legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
 
+# BMI vs. Diabetes_012 by Sex and HighBP
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# BMI vs. Diabetes_012 by Sex and HighChol
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# BMI vs. Diabetes_012 by Sex and PhysActivity
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# Age vs. Diabetes_012 by Sex and Income
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Income', col_wrap=4, legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# Age vs. Diabetes_012 by Sex and HighBP
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighBP', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# Age vs. Diabetes_012 by Sex and HighChol
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+
+# Age vs. Diabetes_012 by Sex and PhysActivity
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
+            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
