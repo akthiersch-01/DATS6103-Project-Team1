@@ -208,6 +208,12 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
+
+xdiabetes = diabetes[['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
+ydiabetes = diabetes['Diabetes_012']
+xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(xdiabetes, ydiabetes, train_size = .8, random_state=12345 )
+
+
 #%%
 #First, let's build a basic logistic regression, we'll need to either use sklearn or the function Prof. Lo gave us in quiz 3 for a multinomial response variable
 
