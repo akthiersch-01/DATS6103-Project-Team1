@@ -6,12 +6,15 @@ import os
 import mlxtend
 import seaborn as sns
 import matplotlib.pyplot as plt
-import math 
+import math
 import scipy.stats as stats
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import label_binarize
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
-from sklearn.metrics import confusion_matrix 
+from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.linear_model import LogisticRegression
 from mlxtend.plotting import plot_decision_regions
@@ -20,6 +23,8 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from statsmodels.stats.weightstats import ztest as ztest
+import warnings
+warnings.filterwarnings('always')
 
 #%%
 #Let's define some key functions here that'll help us throughout the rest of this
@@ -209,10 +214,23 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
 
-xdiabetes = diabetes[['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
-ydiabetes = diabetes['Diabetes_012']
-xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(xdiabetes, ydiabetes, train_size = .8, random_state=12345 )
+# xdiabetes = diabetes[['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
+# ydiabetes = diabetes['Diabetes_012']
+#xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(xdiabetes, ydiabetes, train_size = .8, random_state=12345 )
 
+xdiabetes = diabetes[
+    ['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 
+     'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 
+     'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
+ydiabetes = diabetes['Diabetes_012'].values
+class_le = LabelEncoder()
+ydiabetes = class_le.fit_transform(ydiabetes)
+
+ydiabetes1 = label_binarize(ydiabetes, classes=[0,1,2])
+xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(xdiabetes, ydiabetes, train_size=.8,
+                                                                                random_state=12345)
+xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_split(xdiabetes, ydiabetes1, train_size=.8,
+                                                                                random_state=12345)
 
 #%%
 #First, let's build a basic logistic regression, we'll need to either use sklearn or the function Prof. Lo gave us in quiz 3 for a multinomial response variable
@@ -228,8 +246,39 @@ xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(
 #%%
 #Start building more complicated models
 #Model Building - Trees, SVM, etc.
+#%%
+#=========================Decision Tree=========================
 
-#Information regarding fit and accuracy
+from sklearn.multiclass import OneVsRestClassifier
+
+rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
+# Fit dt to the training set
+rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_pred_score = rf1.predict_proba(xdiabetestest)
+
+rf2 = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, criterion='entropy'))
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+print('Decision Tree results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred,))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
+
+
+
+#%%
+#Random Forest
+
+
+#%%
+#SVM(SVC)
 
 
 #%%
