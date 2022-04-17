@@ -429,9 +429,7 @@ for i in range(3,10):
 
 
 #%%
-#=====================Decision Tree======================
-
-
+#================Decision Tree=================
 
 rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
 # Fit dt to the training set
@@ -478,7 +476,7 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#=====================Random Forest======================
+#==================Random Forest====================
 
 
 # Instantiate dtree
@@ -526,7 +524,7 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#================SVM(SVC)===================
+#=================SVM(SVC)====================
 
 from sklearn.svm import SVC
 from sklearn import preprocessing
@@ -554,6 +552,30 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
+
+from sklearn.metrics import roc_curve, auc
+
+n_classes=3
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+    print(f'AUC value of {i} class:{roc_auc[i]}')
+
+# Plot of a ROC curve for a specific class
+for i in range(n_classes):
+    plt.figure()
+    plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('SVC ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 
 #%%
 #Comparison of all models to determine which variables had the largest impacts and which model was best
