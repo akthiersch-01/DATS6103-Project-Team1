@@ -8,11 +8,11 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import math
 import scipy.stats as stats
+#%pip install tabulate
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import label_binarize
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
@@ -23,6 +23,10 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from statsmodels.stats.weightstats import ztest as ztest
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.metrics import roc_curve, auc
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.multiclass import OneVsRestClassifier
 import warnings
 warnings.filterwarnings('always')
 
@@ -92,10 +96,6 @@ def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, c
     plt.xlabel(cat_col)
     plt.ylabel(cont_col)
     plt.show()
-
-
-#Scatter plot function
-
 
 #Contingency table/heat map functions - non-proportional
 def categorical_contigency_base(group1, group2):
@@ -289,12 +289,102 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', lege
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
+#Diabetes status by blood pressure - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighBP)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighBP)
+chi_square_test(diabetes.Diabetes_012, diabetes.HighBP)
+
+#Diabetes status by Sex - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Sex)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Sex)
+chi_square_test(diabetes.Diabetes_012, diabetes.Sex)
+
+#Diabetes status by HighChol - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighChol)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighChol)
+chi_square_test(diabetes.Diabetes_012, diabetes.HighChol)
+
+#Diabetes status by CholCheck - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.CholCheck)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.CholCheck)
+chi_square_test(diabetes.Diabetes_012, diabetes.CholCheck)
+
+#Diabetes status by Smoker - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Smoker)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Smoker)
+chi_square_test(diabetes.Diabetes_012, diabetes.Smoker)
+
+#Diabetes status by Stroke - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Stroke)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Stroke)
+chi_square_test(diabetes.Diabetes_012, diabetes.Stroke)
+
+#Diabetes status by HeartDiseaseorAttack - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
+chi_square_test(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
+
+#Diabetes status by PhysActivity - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.PhysActivity)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.PhysActivity)
+chi_square_test(diabetes.Diabetes_012, diabetes.PhysActivity)
+
+#Diabetes status by Fruits - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Fruits)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Fruits)
+chi_square_test(diabetes.Diabetes_012, diabetes.Fruits)
+
+#Diabetes status by Veggies - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Veggies)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Veggies)
+chi_square_test(diabetes.Diabetes_012, diabetes.Veggies)
+
+#Diabetes status by HvyAlcoholConsump - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
+chi_square_test(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
+
+#Diabetes status by AnyHealthcare - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.AnyHealthcare)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.AnyHealthcare)
+chi_square_test(diabetes.Diabetes_012, diabetes.AnyHealthcare)
+
+#Diabetes status by NoDocbcCost - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.NoDocbcCost)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.NoDocbcCost)
+chi_square_test(diabetes.Diabetes_012, diabetes.NoDocbcCost)
+
+#Diabetes status by GenHlth - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.GenHlth)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.GenHlth)
+chi_square_test(diabetes.Diabetes_012, diabetes.GenHlth)
+
+#Diabetes status by DiffWalk - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.DiffWalk)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.DiffWalk)
+chi_square_test(diabetes.Diabetes_012, diabetes.DiffWalk)
+
+#Diabetes status by Education - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Education)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Education)
+chi_square_test(diabetes.Diabetes_012, diabetes.Education)
+
+#Diabetes status by Income - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Income)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Income)
+chi_square_test(diabetes.Diabetes_012, diabetes.Income)
+
+#Diabetes by Age - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
+
+#Diabetes by BMI - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
-
-# xdiabetes = diabetes[['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
-# ydiabetes = diabetes['Diabetes_012']
-#xdiabetestrain, xdiabetestest, ydiabetestrain, ydiabetestest = train_test_split(xdiabetes, ydiabetes, train_size = .8, random_state=12345 )
 
 xdiabetes = diabetes[
     ['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 
@@ -324,10 +414,24 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #%%
 #Start building more complicated models
 #Model Building - Trees, SVM, etc.
+
+#%%
+#=====================KNN======================
+for i in range(3,10):
+    knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
+    knn_Diet.fit(xdiabetestrain, ydiabetestrain)
+    print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
+    
+
+#knn_Diet = KNeighborsClassifier(n_neighbors=3) # instantiate with n value given
+#knn_Diet.fit(xdiabetestrain, ydiabetestrain)
+#print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+
+
 #%%
 #=====================Decision Tree======================
 
-from sklearn.multiclass import OneVsRestClassifier
+
 
 rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
 # Fit dt to the training set
@@ -349,7 +453,7 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred,))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-from sklearn.metrics import roc_curve, auc
+
 
 n_classes=3
 fpr = dict()
@@ -376,8 +480,6 @@ for i in range(n_classes):
 #%%
 #=====================Random Forest======================
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.multiclass import OneVsRestClassifier
 
 # Instantiate dtree
 rf1 = RandomForestClassifier(n_estimators=100)
@@ -400,8 +502,6 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-
-from sklearn.metrics import roc_curve, auc
 
 n_classes=3
 fpr = dict()
