@@ -27,6 +27,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn import preprocessing
 import warnings
 warnings.filterwarnings('always')
 
@@ -418,11 +419,15 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 
 #%%
 #=====================KNN======================
+#This takes a VERY long time to run when we include the train parameters. I will comment them for sake of ease, but we can attempt them in the future if we need the scores
+
+
+
 for i in [3,5,7,9,11]:
     knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
     knn_Diet.fit(xdiabetestrain, ydiabetestrain)
     print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
-    print(f'10-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    #print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
     y_pred_score1 = knn_Diet.predict_proba(xdiabetestest)
     n_classes=3
     fpr = dict()
@@ -572,9 +577,7 @@ for i in range(n_classes):
 
 #%%
 #=================SVM(SVC)====================
-
-from sklearn.svm import SVC
-from sklearn import preprocessing
+#Sometimes SVM can't solve the equation if there's a huge amount of data and/or predictors. We may be running into that here, so if this doesn't solve in a reasonable amount of time, we'll need to just leave the code commetned and write an acknowledgment of the computational limitations of the technique
 
 xdiabetestrain = preprocessing.scale(xdiabetestrain)
 
@@ -600,7 +603,7 @@ print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
 
-from sklearn.metrics import roc_curve, auc
+
 
 n_classes=3
 fpr = dict()
