@@ -426,7 +426,33 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#SVM(SVC)
+#================SVM(SVC)===================
+
+from sklearn.svm import SVC
+from sklearn import preprocessing
+
+xdiabetestrain = preprocessing.scale(xdiabetestrain)
+
+xdiabetestest = preprocessing.scale(xdiabetestest)
+rf1 = SVC(kernel='linear', C=1.0, random_state=0)
+# Fit dt to the training set
+rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_pred_score = rf1.decision_function(xdiabetestest)
+
+rf2 = OneVsRestClassifier(SVC(kernel='linear', C=1.0, random_state=0))
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.decision_function(xdiabetestest1)
+
+print('SVC results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
 
 #%%
