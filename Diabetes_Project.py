@@ -325,7 +325,7 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #Start building more complicated models
 #Model Building - Trees, SVM, etc.
 #%%
-#=========================Decision Tree=========================
+#=====================Decision Tree======================
 
 from sklearn.multiclass import OneVsRestClassifier
 
@@ -374,7 +374,32 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#Random Forest
+#=====================Random Forest======================
+
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.multiclass import OneVsRestClassifier
+
+# Instantiate dtree
+rf1 = RandomForestClassifier(n_estimators=100)
+# Fit dt to the training set
+rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_pred_score = rf1.predict_proba(xdiabetestest)
+
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+print('Random forest results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
+
 
 
 #%%
