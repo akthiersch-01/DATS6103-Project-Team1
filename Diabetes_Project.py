@@ -349,7 +349,29 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred,))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
+from sklearn.metrics import roc_curve, auc
 
+n_classes=3
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+    print(f'AUC value of {i} class:{roc_auc[i]}')
+
+# Plot of a ROC curve for a specific class
+for i in range(n_classes):
+    plt.figure()
+    plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Decision Tree ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 
 #%%
 #Random Forest
