@@ -27,6 +27,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn import preprocessing
 import warnings
 warnings.filterwarnings('always')
 
@@ -424,11 +425,15 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 
 #%%
 #=====================KNN======================
+#This takes a VERY long time to run when we include the train parameters. I will comment them for sake of ease, but we can attempt them in the future if we need the scores
+
+
+
 for i in [3,5,7,9,11]:
     knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
     knn_Diet.fit(xdiabetestrain, ydiabetestrain)
     print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
-    print(f'10-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    #print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
     y_pred_score1 = knn_Diet.predict_proba(xdiabetestest)
     n_classes=3
     fpr = dict()
@@ -451,7 +456,7 @@ for i in [3,5,7,9,11]:
         plt.title(f'{i}-NN model ROC for Diabetes_012 = {j}')
         plt.legend(loc="lower right")
         plt.show()
-    
+
 
 #%%
 #================Decision Tree=================
@@ -461,12 +466,25 @@ rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
 rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
+importance = rf1.feature_importances_
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
 
 rf2 = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, criterion='entropy'))
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+
 
 print('Decision Tree results')
 
@@ -510,12 +528,27 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-
+importance = rf1.feature_importances_
+for i,v in enumerate(importance):
+	print('Feature: %0d, Score: %.5f' % (i,v))
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+importance = rf2.feature_importances_
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
+
 
 print('Random forest results')
 
@@ -550,9 +583,7 @@ for i in range(n_classes):
 
 #%%
 #=================SVM(SVC)====================
-
-from sklearn.svm import SVC
-from sklearn import preprocessing
+#Sometimes SVM can't solve the equation if there's a huge amount of data and/or predictors. We may be running into that here, so if this doesn't solve in a reasonable amount of time, we'll need to just leave the code commetned and write an acknowledgment of the computational limitations of the technique
 
 xdiabetestrain = preprocessing.scale(xdiabetestrain)
 
@@ -578,7 +609,7 @@ print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
 
-from sklearn.metrics import roc_curve, auc
+
 
 n_classes=3
 fpr = dict()
