@@ -415,18 +415,37 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #Start building more complicated models
 #Model Building - Trees, SVM, etc.
 
+
 #%%
 #=====================KNN======================
-for i in range(3,10):
+for i in [3,5,7,9,11]:
     knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
     knn_Diet.fit(xdiabetestrain, ydiabetestrain)
     print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
+    print(f'10-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    y_pred_score1 = knn_Diet.predict_proba(xdiabetestest)
+    n_classes=3
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for j in range(n_classes):
+        fpr[j], tpr[j], _ = roc_curve(ydiabetestest1[:, j], y_pred_score1[:, j])
+        roc_auc[j] = auc(fpr[j], tpr[j])
+        print(f'AUC value of {j} class:{roc_auc[j]}')
+
+    # Plot of a KNN ROC curve for a specific class
+    for j in range(n_classes):
+        plt.figure()
+        plt.plot(fpr[j], tpr[j], label='ROC curve (area = %0.2f)' % roc_auc[j])
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'{i}-NN model ROC for Diabetes_012 = {j}')
+        plt.legend(loc="lower right")
+        plt.show()
     
-
-#knn_Diet = KNeighborsClassifier(n_neighbors=3) # instantiate with n value given
-#knn_Diet.fit(xdiabetestrain, ydiabetestrain)
-#print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
-
 
 #%%
 #=====================Decision Tree======================
