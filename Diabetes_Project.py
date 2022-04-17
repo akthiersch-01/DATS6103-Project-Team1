@@ -248,11 +248,15 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 # chi_square_test(diabetes['Diabetes_012'], diabetes['HighBP'])
 # violin_plot_func(diabetes, 'Diabetes_012', 'Age')
 # two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
+
+
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
+
+
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
 # BMI vs. Diabetes_012 by Sex and Income
@@ -286,6 +290,7 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
             xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+            
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
@@ -383,6 +388,7 @@ two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes[
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
 
