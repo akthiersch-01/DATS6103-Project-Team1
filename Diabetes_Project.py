@@ -353,11 +353,11 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighBP', legend_lab
 
 # Age vs. Diabetes_012 by Sex and HighChol
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
+            xticks=xticks, title='Age vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
 
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+            xticks=xticks, title='Age vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
 
 
 # BMI vs. Diabetes_012 by Sex and Education
