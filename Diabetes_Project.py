@@ -1,5 +1,7 @@
 #%%
 #Import packages
+from audioop import mul
+from tkinter import Label
 import numpy as np
 import pandas as pd
 import os
@@ -8,14 +10,15 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import math
 import scipy.stats as stats
-#%pip install tabulate
-from sklearn.preprocessing import LabelEncoder
+import tabulate
+from sklearn.preprocessing import LabelBinarizer, LabelEncoder
 from sklearn.preprocessing import label_binarize
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
+from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.linear_model import LogisticRegression
 from mlxtend.plotting import plot_decision_regions
 from sklearn import linear_model
@@ -23,6 +26,8 @@ from sklearn.svm import SVC, LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score
 from statsmodels.stats.weightstats import ztest as ztest
+import statsmodels.api as sm
+from statsmodels.formula.api import mnlogit, glm
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
@@ -249,11 +254,15 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 # chi_square_test(diabetes['Diabetes_012'], diabetes['HighBP'])
 # violin_plot_func(diabetes, 'Diabetes_012', 'Age')
 # two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
+
+
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
+
+
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
 # BMI vs. Diabetes_012 by Sex and Income
@@ -287,6 +296,7 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
             xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+            
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
@@ -384,6 +394,7 @@ two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes[
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
 
@@ -392,6 +403,7 @@ xdiabetes = diabetes[
      'PhysActivity', 'Fruits', 'Veggies', 'HvyAlcoholConsump', 'AnyHealthcare', 'NoDocbcCost', 
      'GenHlth', 'MentHlth', 'PhysHlth', 'DiffWalk', 'Sex', 'Age', 'Education', 'Income']]
 ydiabetes = diabetes['Diabetes_012'].values
+
 class_le = LabelEncoder()
 ydiabetes = class_le.fit_transform(ydiabetes)
 
@@ -403,13 +415,81 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 
 #%%
 #First, let's build a basic logistic regression, we'll need to either use sklearn or the function Prof. Lo gave us in quiz 3 for a multinomial response variable
-
 #Model Building - Logistic
+model_diabetes1 = mnlogit(formula='Diabetes_012 ~ HighBP + HighChol + CholCheck + BMI + Smoker + Stroke + HeartDiseaseorAttack + PhysActivity + Fruits + Veggies + HvyAlcoholConsump + AnyHealthcare + NoDocbcCost + GenHlth + MentHlth + PhysHlth + DiffWalk + Sex + Age + Education + Income', data=diabetes)
 
 #Model summary information (including pseudo-R^2)
-#Loop with different cutoff values showing score and confusion matrix
+model_diabetes1_fit = model_diabetes1.fit()
+print( model_diabetes1_fit.summary() )
+modelpredicitons = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
+modelpredicitons.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
+print(modelpredicitons.head())
 
+
+#Sklearn
+diabetes_logit = LogisticRegression()
+diabetes_logit.fit(xdiabetestrain, ydiabetestrain)
+print('Logit model accuracy (with the test set):', diabetes_logit.score(xdiabetestest, ydiabetestest))
+print('Logit model accuracy (with the train set):', diabetes_logit.score(xdiabetestrain, ydiabetestrain))
+print(diabetes_logit.predict(xdiabetestest))
+print(diabetes_logit.predict_proba(xdiabetestrain[:8]))
+print(diabetes_logit.predict_proba(xdiabetestest[:8]))
+
+#Loop with different cutoff values showing score and confusion matrix
+def predictcutoff(arr, cutoff):
+  arrbool = arr[:,1]>cutoff
+  arr= arr[:,1]*arrbool/arr[:,1]
+  return arr.astype(int)
+
+test = diabetes_logit.predict_proba(xdiabetestest)
+p = predictcutoff(test, 0.1)
+print(p)
+
+predictcutoff(test, 0.2)
+
+predictcutoff(test, 0.5)
+
+cut_off = 1
+predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).astype(int)
+print(predictions)
+
+
+# Classification Report
+#
+y_true, y_pred = ydiabetestest, diabetes_logit.predict(xdiabetestest)
+print(classification_report(y_true, y_pred))
+#%%
 #ROC-AUC
+# generate a no skill prediction (majority class)
+ns_probs = [0 for _ in range(len(ydiabetestest))]
+# predict probabilities
+lr_probs = diabetes_logit.predict_proba(xdiabetestest)
+# keep probabilities for the positive outcome only
+lr_probs = lr_probs[:, 1]
+# calculate for all response types
+for response in range(3):
+    # calculate roc scores
+    ns_auc = roc_auc_score(ydiabetestest1[:,response], ns_probs)
+    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs)
+
+    # summarize scores
+    print('No Skill: ROC AUC=%.3f' % (ns_auc))
+    print('Logistic: ROC AUC=%.3f' % (lr_auc))
+
+    # calculate roc curves
+    ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest1[:,response], ns_probs)
+    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs)
+
+    # plot the roc curve for the model
+    plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    # axis labels
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    # show the legend
+    plt.legend()
+    # show the plot
+    plt.show()
 
 
 #%%
@@ -522,7 +602,19 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-importance = rf1.feature_importances_
+
+
+# importance = rf1.estimators_[2].feature_importances_
+# for i,v in enumerate(importance):
+# 	print('Feature: %0d, Score: %.5f' % (i,v))
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+importance = rf2.estimators_[2].feature_importances_
+
 feature_importance = np.array(importance)
 feature_names = np.array(xdiabetestrain.columns)
 
