@@ -579,9 +579,12 @@ for response in range(3):
     ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest1[:,response], ns_probs)
     lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs)
 
+    # calculate auc
+    area_curve = auc(lr_fpr, lr_tpr)
+
     # plot the roc curve for the model
     plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
-    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic (area = %0.2f)' % area_curve)
     # axis labels
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -628,7 +631,7 @@ for i in [3,5,7,9,11]:
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        plt.title(f'{i}-NN model ROC for Diabetes_012 = {j}')
+        plt.title(f'{i}-NN model ROC for Diabetes_012 = {j}', fontweight='bold')
         plt.legend(loc="lower right")
         plt.show()
 
@@ -689,7 +692,7 @@ for i in range(n_classes):
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Decision Tree ROC')
+    plt.title('Decision Tree ROC', fontweight='bold')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -762,7 +765,7 @@ for i in range(n_classes):
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('Random Forest ROC')
+    plt.title('Random Forest ROC', fontweight='bold')
     plt.legend(loc="lower right")
     plt.show()
 
@@ -816,7 +819,7 @@ for i in range(n_classes):
     plt.ylim([0.0, 1.05])
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('SVC ROC')
+    plt.title('SVC ROC', fontweight='bold')
     plt.legend(loc="lower right")
     plt.show()
 
