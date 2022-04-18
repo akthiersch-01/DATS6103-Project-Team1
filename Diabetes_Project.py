@@ -32,6 +32,7 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn import preprocessing
 import warnings
 warnings.filterwarnings('always')
 
@@ -253,11 +254,15 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 # chi_square_test(diabetes['Diabetes_012'], diabetes['HighBP'])
 # violin_plot_func(diabetes, 'Diabetes_012', 'Age')
 # two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
+
+
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
+
+
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
 # BMI vs. Diabetes_012 by Sex and Income
@@ -291,6 +296,7 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
             xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+            
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
@@ -388,6 +394,7 @@ two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes[
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
 two_sample_test(diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+
 #%%
 #Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
 
@@ -485,35 +492,69 @@ plt.show()
 #Start building more complicated models
 #Model Building - Trees, SVM, etc.
 
+
 #%%
 #=====================KNN======================
-for i in range(3,10):
+#This takes a VERY long time to run when we include the train parameters. I will comment them for sake of ease, but we can attempt them in the future if we need the scores
+
+
+
+for i in [3,5,7,9,11]:
     knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
     knn_Diet.fit(xdiabetestrain, ydiabetestrain)
     print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
-    
+    #print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    y_pred_score1 = knn_Diet.predict_proba(xdiabetestest)
+    n_classes=3
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for j in range(n_classes):
+        fpr[j], tpr[j], _ = roc_curve(ydiabetestest1[:, j], y_pred_score1[:, j])
+        roc_auc[j] = auc(fpr[j], tpr[j])
+        print(f'AUC value of {j} class:{roc_auc[j]}')
 
-#knn_Diet = KNeighborsClassifier(n_neighbors=3) # instantiate with n value given
-#knn_Diet.fit(xdiabetestrain, ydiabetestrain)
-#print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    # Plot of a KNN ROC curve for a specific class
+    for j in range(n_classes):
+        plt.figure()
+        plt.plot(fpr[j], tpr[j], label='ROC curve (area = %0.2f)' % roc_auc[j])
+        plt.plot([0, 1], [0, 1], 'k--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(f'{i}-NN model ROC for Diabetes_012 = {j}')
+        plt.legend(loc="lower right")
+        plt.show()
 
 
 #%%
-#=====================Decision Tree======================
-
-
+#================Decision Tree=================
 
 rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
 # Fit dt to the training set
 rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
+importance = rf1.feature_importances_
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
 
 rf2 = OneVsRestClassifier(DecisionTreeClassifier(max_depth=3, criterion='entropy'))
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+
 
 print('Decision Tree results')
 
@@ -548,7 +589,7 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#=====================Random Forest======================
+#==================Random Forest====================
 
 
 # Instantiate dtree
@@ -557,12 +598,27 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-
+importance = rf1.feature_importances_
+for i,v in enumerate(importance):
+	print('Feature: %0d, Score: %.5f' % (i,v))
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+importance = rf2.feature_importances_
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
+
 
 print('Random forest results')
 
@@ -596,8 +652,56 @@ for i in range(n_classes):
     plt.show()
 
 #%%
-#SVM(SVC)
+#=================SVM(SVC)====================
+#Sometimes SVM can't solve the equation if there's a huge amount of data and/or predictors. We may be running into that here, so if this doesn't solve in a reasonable amount of time, we'll need to just leave the code commetned and write an acknowledgment of the computational limitations of the technique
 
+xdiabetestrain = preprocessing.scale(xdiabetestrain)
+
+xdiabetestest = preprocessing.scale(xdiabetestest)
+rf1 = SVC(kernel='linear', C=1.0, random_state=0)
+# Fit dt to the training set
+rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_pred_score = rf1.decision_function(xdiabetestest)
+
+rf2 = OneVsRestClassifier(SVC(kernel='linear', C=1.0, random_state=0))
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.decision_function(xdiabetestest1)
+
+print('SVC results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
+
+
+
+
+n_classes=3
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+    print(f'AUC value of {i} class:{roc_auc[i]}')
+
+# Plot of a ROC curve for a specific class
+for i in range(n_classes):
+    plt.figure()
+    plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('SVC ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 
 #%%
 #Comparison of all models to determine which variables had the largest impacts and which model was best
