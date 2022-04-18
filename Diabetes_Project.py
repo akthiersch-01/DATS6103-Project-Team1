@@ -640,9 +640,99 @@ for response in range(3):
 
 
 #%%
-#Start building more complicated models
-#Model Building - Trees, SVM, etc.
+#Non-Full Logistic Regression Model
+model_diabetes_small = mnlogit(formula='Diabetes_012 ~ C(HighBP) + C(HighChol) + C(CholCheck) + BMI + C(Stroke) + C(Veggies) + C(HvyAlcoholConsump) + C(NoDocbcCost) + C(GenHlth) + MentHlth + C(Sex) + C(Age)+ C(Income)', data=diabetes)
 
+#Model summary information (including pseudo-R^2)
+model_diabetes_small_fit = model_diabetes_small.fit()
+print( model_diabetes_small_fit.summary() )
+modelpredictions = pd.DataFrame(model_diabetes_small_fit.predict(diabetes)) 
+modelpredictions.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
+print(modelpredictions.head())
+
+
+xdiabetes_small = diabetes[
+    ['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Stroke', 'Veggies', 'HvyAlcoholConsump', 'NoDocbcCost', 
+     'GenHlth', 'MentHlth', 'Sex', 'Age', 'Income']]
+ydiabetes_small = diabetes['Diabetes_012'].values
+
+class_le = LabelEncoder()
+ydiabetes_small = class_le.fit_transform(ydiabetes_small)
+
+ydiabetes_small1 = label_binarize(ydiabetes_small, classes=[0,1,2])
+xdiabetes_smalltrain, xdiabetes_smalltest, ydiabetes_smalltrain, ydiabetes_smalltest = train_test_split(xdiabetes_small, ydiabetes_small, train_size=.8,
+                                                                                random_state=12345)
+xdiabetes_smalltrain1, xdiabetes_smalltest1, ydiabetes_smalltrain1, ydiabetes_smalltest1 = train_test_split(xdiabetes_small, ydiabetes_small1, train_size=.8,
+                                                                                random_state=12345)
+
+
+
+
+#Sklearn
+diabetes_small_logit = LogisticRegression()
+diabetes_small_logit.fit(xdiabetes_smalltrain, ydiabetes_smalltrain)
+print('Logit model accuracy (with the test set):', diabetes_small_logit.score(xdiabetes_smalltest, ydiabetes_smalltest))
+print('Logit model accuracy (with the train set):', diabetes_small_logit.score(xdiabetes_smalltrain, ydiabetes_smalltrain))
+print(diabetes_small_logit.predict(xdiabetes_smalltest))
+print(diabetes_small_logit.predict_proba(xdiabetes_smalltrain[:8]))
+print(diabetes_small_logit.predict_proba(xdiabetes_smalltest[:8]))
+
+#Loop with different cutoff values showing score and confusion matrix
+def predictcutoff(arr, cutoff):
+  arrbool = arr[:,1]>cutoff
+  arr= arr[:,1]*arrbool/arr[:,1]
+  return arr.astype(int)
+
+test = diabetes_logit.predict_proba(xdiabetestest)
+p = predictcutoff(test, 0.1)
+print(p)
+
+predictcutoff(test, 0.2)
+
+predictcutoff(test, 0.5)
+
+cut_off = 1
+predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).astype(int)
+print(predictions)
+
+
+# Classification Report
+#
+y_true_small, y_pred_small = ydiabetes_smalltest, diabetes_small_logit.predict(xdiabetes_smalltest)
+print("Confusion Matrix: \n", confusion_matrix(y_true_small, y_pred_small))
+print(classification_report(y_true_small, y_pred_small))
+#%%
+#ROC-AUC
+# generate a no skill prediction (majority class)
+ns_probs = [0 for _ in range(len(ydiabetes_smalltest))]
+# predict probabilities
+lr_probs = diabetes_small_logit.predict_proba(xdiabetes_smalltest)
+# keep probabilities for the positive outcome only
+#lr_probs = lr_probs[:, 1]
+# calculate for all response types
+for response in range(3):
+    # calculate roc scores
+    ns_auc = roc_auc_score(ydiabetes_smalltest1[:,response], ns_probs)
+    lr_auc = roc_auc_score(ydiabetes_smalltest1[:, response], lr_probs[:,response])
+
+    # summarize scores
+    print('No Skill: ROC AUC=%.3f' % (ns_auc))
+    print('Logistic: ROC AUC=%.3f' % (lr_auc))
+
+    # calculate roc curves
+    ns_fpr, ns_tpr, _ = roc_curve(ydiabetes_smalltest1[:,response], ns_probs)
+    lr_fpr, lr_tpr, _ = roc_curve(ydiabetes_smalltest1[:, response], lr_probs[:,response])
+
+    # plot the roc curve for the model
+    plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    # axis labels
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    # show the legend
+    plt.legend()
+    # show the plot
+    plt.show()
 
 #%%
 #=====================KNN======================
@@ -681,7 +771,7 @@ for i in [3,5,7,9,11]:
 
 #%%
 #================Decision Tree=================
-
+# Max depth = 3
 rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
 # Fit dt to the training set
 rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
@@ -739,10 +829,72 @@ for i in range(n_classes):
     plt.legend(loc="lower right")
     plt.show()
 
+
+
+# Max depth = 11 (10 gave us something, 11 was better)
+rf1 = DecisionTreeClassifier(max_depth=11, criterion='entropy', random_state=0)
+# Fit dt to the training set
+rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_train_pred = rf1.predict(xdiabetestrain)
+y_pred_score = rf1.predict_proba(xdiabetestest)
+importance = rf1.feature_importances_
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
+
+rf2 = OneVsRestClassifier(DecisionTreeClassifier(max_depth=11, criterion='entropy'))
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+
+
+print('Decision Tree results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score (Test): ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Accuracy score (Train): ", accuracy_score(ydiabetestrain, y_train_pred) * 100)
+print("Confusion Matrix (Test): \n", confusion_matrix(ydiabetestest, y_test_pred,))
+print("Confusion Matrix (Train): \n", confusion_matrix(ydiabetestrain, y_train_pred,))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
+
+
+
+n_classes=3
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+    print(f'AUC value of {i} class:{roc_auc[i]}')
+
+# Plot of a ROC curve for a specific class
+for i in range(n_classes):
+    plt.figure()
+    plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Decision Tree ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 #%%
 #==================Random Forest====================
 
-
+#Estimators = 100
 # Instantiate dtree
 rf1 = RandomForestClassifier(n_estimators=100)
 # Fit dt to the training set
@@ -812,6 +964,77 @@ for i in range(n_classes):
     plt.legend(loc="lower right")
     plt.show()
 
+
+
+#Estimators = 200 (50 didn't change much, but gave a slight improvement)
+# Instantiate dtree
+rf1 = RandomForestClassifier(n_estimators=200)
+# Fit dt to the training set
+rf1.fit(xdiabetestrain, ydiabetestrain)
+y_test_pred = rf1.predict(xdiabetestest)
+y_pred_score = rf1.predict_proba(xdiabetestest)
+
+
+# importance = rf1.estimators_[2].feature_importances_
+# for i,v in enumerate(importance):
+# 	print('Feature: %0d, Score: %.5f' % (i,v))
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=200))
+
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+importance = rf2.estimators_[2].feature_importances_
+
+feature_importance = np.array(importance)
+feature_names = np.array(xdiabetestrain.columns)
+
+#Create a DataFrame using a Dictionary
+data={'feature_names':feature_names,'feature_importance':feature_importance}
+fi_df = pd.DataFrame(data)
+#Sort the DataFrame in order decreasing feature importance
+fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
+print(fi_df)
+
+
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=50))
+
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+
+
+print('Random forest results')
+
+# Evaluate test-set accuracy
+print('test set evaluation: ')
+print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
+print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
+print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
+
+
+n_classes=3
+fpr = dict()
+tpr = dict()
+roc_auc = dict()
+for i in range(n_classes):
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    roc_auc[i] = auc(fpr[i], tpr[i])
+    print(f'AUC value of {i} class:{roc_auc[i]}')
+
+# Plot of a ROC curve for a specific class
+for i in range(n_classes):
+    plt.figure()
+    plt.plot(fpr[i], tpr[i], label='ROC curve (area = %0.2f)' % roc_auc[i])
+    plt.plot([0, 1], [0, 1], 'k--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Random Forest ROC')
+    plt.legend(loc="lower right")
+    plt.show()
 #%%
 #=================SVM(SVC)====================
 #Sometimes SVM can't solve the equation if there's a huge amount of data and/or predictors. We may be running into that here, so if this doesn't solve in a reasonable amount of time, we'll need to just leave the code commetned and write an acknowledgment of the computational limitations of the technique
