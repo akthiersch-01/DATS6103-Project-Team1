@@ -522,15 +522,6 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-importance = rf1.feature_importances_
-for i,v in enumerate(importance):
-	print('Feature: %0d, Score: %.5f' % (i,v))
-rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
-
-# Fit dt to the training set
-rf2.fit(xdiabetestrain1, ydiabetestrain1)
-y_test_pred1 = rf2.predict(xdiabetestest1)
-y_pred_score1 = rf2.predict_proba(xdiabetestest1)
 importance = rf2.feature_importances_
 feature_importance = np.array(importance)
 feature_names = np.array(xdiabetestrain.columns)
@@ -538,10 +529,16 @@ feature_names = np.array(xdiabetestrain.columns)
 #Create a DataFrame using a Dictionary
 data={'feature_names':feature_names,'feature_importance':feature_importance}
 fi_df = pd.DataFrame(data)
-
 #Sort the DataFrame in order decreasing feature importance
 fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
 print(fi_df)
+
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
 
 
 print('Random forest results')
@@ -589,6 +586,7 @@ y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.decision_function(xdiabetestest)
 
 rf2 = OneVsRestClassifier(SVC(kernel='linear', C=1.0, random_state=0))
+
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
