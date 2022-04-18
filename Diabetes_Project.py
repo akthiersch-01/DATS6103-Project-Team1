@@ -369,7 +369,7 @@ sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Education', col_wra
 # Age vs. Diabetes_012 by Sex and Education
 col_labels_edu = ['Never Attended', 'Elementary', 'Some High School', 'High School Graduate', 'Some College', 'College Graduate']
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Education', col_wrap=3, legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by Education and Sex', xlabel=xlabel, col_labels=col_labels_edu)
+            xticks=xticks, title='Age vs. Diabetes Status by Education and Sex', xlabel=xlabel, col_labels=col_labels_edu)
 
 
 #%%
