@@ -358,7 +358,20 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
-            
+
+
+# BMI vs. Diabetes_012 by Sex and Education
+col_labels_edu = ['Never Attended', 'Elementary', 'Some High School', 'High School Graduate', 'Some College', 'College Graduate']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Education', col_wrap=3, legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Education and Sex', xlabel=xlabel, col_labels=col_labels_edu)
+
+
+# Age vs. Diabetes_012 by Sex and Education
+col_labels_edu = ['Never Attended', 'Elementary', 'Some High School', 'High School Graduate', 'Some College', 'College Graduate']
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Education', col_wrap=3, legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Education and Sex', xlabel=xlabel, col_labels=col_labels_edu)
+
+
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 yticks={0: 'No Diabetes', 1: 'Pre Diabetes', 2: 'Has Diabetes'} #([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
