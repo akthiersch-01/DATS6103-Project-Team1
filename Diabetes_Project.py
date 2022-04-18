@@ -135,6 +135,13 @@ def categorical_contigency_base(group1, group2, title=None, yticks=None, ylabel=
     Group here refers to categorical, but not individual level'''
     data_contingency = pd.crosstab(group1, group2, margins = True, margins_name = 'Total')
     data_contingency=pd.crosstab(group1, group2, margins = False, margins_name = 'Total')
+
+    f, ax = plt.subplots(dpi=100, figsize=(14, 7))
+    #sns.heatmap(data_contingency, annot=True, fmt="d", linewidths=.5, ax=ax)
+    #res = sns.heatmap(pd.crosstab(group1, group2,), annot=True, fmt="d", linewidths = 0.5, cbar=False, ax=ax)
+    #res.set_xticklabels(res.get_xmajorticklabels(), fontsize = 18)
+    #res.set_yticklabels(res.get_ymajorticklabels(), fontsize = 18)
+    #plt.savefig('data_table.png')
     if yticks:
         data_contingency = data_contingency.rename(index=yticks)
     if xticks:
@@ -316,8 +323,8 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
-
-
+diabetes.head()
+diabetes.Diabetes_012.value_counts()
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
 xticks = ([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
@@ -364,6 +371,7 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
             xticks=xticks, title='Age vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
 
 # Age vs. Diabetes_012 by Sex and PhysActivity
+
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
             xticks=xticks, title='Age vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
 
@@ -499,15 +507,27 @@ chi_square_test(diabetes.Diabetes_012, diabetes.Education)
 
 #Diabetes status by Income - Heat Map and Chi-Square test (Significant)
 chart_title = 'Diabetes Status vs. Income'
-xticks = {1: '< $10,000', 2: '< $15,000', 3: '< $20,000', 4: '< $25,000', 5: '< $35,000', 6: '< $50,000', 7: '< $75,000', 8: '> $75,000'}
+xticks = {1: '< $10,000', 2: '< $15,000', 3: '< $20,000', 4: '< $25,000', 5: '< $35,000', 6: '< $50,000', 7: '< $75,000', 8: '≥ $75,000'}
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Income, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Income, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Income)
 
-#Diabetes by Age - Z-Tests (All Significant)
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
+#Diabetes status by Age - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Age)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Age)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Age)
+chi_square_test(diabetes.Diabetes_012, diabetes.Age)
+
+
+#Diabetes by Mental Health - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==1]['MentHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth']) #not statistically different
+
+#Diabetes by Physical Health - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==1]['PhysHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
 
 #Diabetes by BMI - Z-Tests (All Significant)
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
@@ -535,14 +555,14 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #%%
 #First, let's build a basic logistic regression, we'll need to either use sklearn or the function Prof. Lo gave us in quiz 3 for a multinomial response variable
 #Model Building - Logistic
-model_diabetes1 = mnlogit(formula='Diabetes_012 ~ HighBP + HighChol + CholCheck + BMI + Smoker + Stroke + HeartDiseaseorAttack + PhysActivity + Fruits + Veggies + HvyAlcoholConsump + AnyHealthcare + NoDocbcCost + GenHlth + MentHlth + PhysHlth + DiffWalk + Sex + Age + Education + Income', data=diabetes)
+model_diabetes1 = mnlogit(formula='Diabetes_012 ~ C(HighBP) + C(HighChol) + C(CholCheck) + BMI + C(Smoker) + C(Stroke) + C(HeartDiseaseorAttack) + C(PhysActivity) + C(Fruits) + C(Veggies) + C(HvyAlcoholConsump) + C(AnyHealthcare) + C(NoDocbcCost) + C(GenHlth) + MentHlth + PhysHlth + C(DiffWalk) + C(Sex) + C(Age) + C(Education) + C(Income)', data=diabetes)
 
 #Model summary information (including pseudo-R^2)
 model_diabetes1_fit = model_diabetes1.fit()
 print( model_diabetes1_fit.summary() )
-modelpredicitons = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
-modelpredicitons.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
-print(modelpredicitons.head())
+modelpredictions = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
+modelpredictions.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
+print(modelpredictions.head())
 
 
 #Sklearn
@@ -576,6 +596,7 @@ print(predictions)
 # Classification Report
 #
 y_true, y_pred = ydiabetestest, diabetes_logit.predict(xdiabetestest)
+print("Confusion Matrix: \n", confusion_matrix(y_true, y_pred))
 print(classification_report(y_true, y_pred))
 #%%
 #ROC-AUC
@@ -584,13 +605,14 @@ ns_probs = [0 for _ in range(len(ydiabetestest))]
 # predict probabilities
 lr_probs = diabetes_logit.predict_proba(xdiabetestest)
 # keep probabilities for the positive outcome only
-lr_probs = lr_probs[:, 1]
+
 # calculate for all response Status
 diabetes_response = ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']
+
 for response in range(3):
     # calculate roc scores
     ns_auc = roc_auc_score(ydiabetestest1[:,response], ns_probs)
-    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs)
+    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs[:,response])
 
     # summarize scores
     print('No Skill: ROC AUC=%.3f' % (ns_auc))
@@ -598,7 +620,7 @@ for response in range(3):
 
     # calculate roc curves
     ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest1[:,response], ns_probs)
-    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs)
+    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs[:,response])
 
     # calculate auc
     area_curve = auc(lr_fpr, lr_tpr)
