@@ -522,7 +522,7 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-importance = rf2.feature_importances_
+importance = rf1.feature_importances_
 feature_importance = np.array(importance)
 feature_names = np.array(xdiabetestrain.columns)
 
