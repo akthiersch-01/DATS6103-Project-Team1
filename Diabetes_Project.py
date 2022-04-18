@@ -1,11 +1,13 @@
 #%%
 #Import packages
 from audioop import mul
+from doctest import DocFileSuite
 from tkinter import Label
 import numpy as np
 import pandas as pd
 import os
 import mlxtend
+from pyparsing import col
 import seaborn as sns
 import matplotlib.pyplot as plt
 import math
@@ -61,7 +63,7 @@ def violin_plot_func(data, cat_col, cont_col):
 
 #Category plot function
 def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, col=None, col_wrap=2, legend_labels=None,
-                xticks=None):
+                xticks=None, title=None, xlabel=None, col_labels=None):
     '''
     Function will take in a datatset and two column names, one categorical and one continuous. Other parameters are
     optional to assist in plot customization.
@@ -75,6 +77,9 @@ def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, c
     :param col_wrap: wraps the columns at this width. Default set to 2
     :param legend_labels: labels to set for legend. Default set to None
     :param xticks: labels to set for xticks. Default set to None
+    :param title: title for entire chart 
+    :param xlabel: x axis label
+    :param col_labels: column labels
     '''
     # check if hue is set
     if hue:
@@ -95,54 +100,104 @@ def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, c
         for index in range(len(legend_labels)):
             chart._legend.texts[index].set_text(legend_labels[index])
 
+    if col_labels:
+        col_titles = chart.axes.flatten()
+        for i in range(len(col_labels)):
+            col_titles[i].set_title(col_labels[i])
+
     # edit xticks if provided
     if xticks:
         plt.xticks(xticks[0], xticks[1])
 
-    plt.xlabel(cat_col)
+    # add title if provided
+    if title:
+        plt.suptitle(title, fontweight='bold')
+        plt.subplots_adjust(top=0.9)
+    if xlabel:
+        chart.set_xlabels(xlabel)
+    else:
+        chart.set_xlabels(cat_col)
     plt.ylabel(cont_col)
     plt.show()
 
 #Contingency table/heat map functions - non-proportional
-def categorical_contigency_base(group1, group2):
+def categorical_contigency_base(group1, group2, title=None, yticks=None, ylabel=None, xticks=None):
     '''
     Function will combine two categorical variables into a contingency table, and then output a heatmap showing both the numbers and a color scheme to represent equality across the cells. Includes margins
     input group1, group2
     group1: categorical variable
     group2: categorical variable
+    title: title for entire chart 
+    yticks: labels for yticks
+    ylabel: y axis label
+    xticks: labels for xticks
     output: heatmap showing the contingency table with appropriate coloring
     Group here refers to categorical, but not individual level'''
     data_contingency = pd.crosstab(group1, group2, margins = True, margins_name = 'Total')
-    print(data_contingency)
     data_contingency=pd.crosstab(group1, group2, margins = False, margins_name = 'Total')
+    if yticks:
+        data_contingency = data_contingency.rename(index=yticks)
+    if xticks:
+        data_contingency = data_contingency.rename(columns=xticks)
     f, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(data_contingency, annot=True, fmt="d", linewidths=.5, ax=ax)
+    chart = sns.heatmap(data_contingency, annot=True, fmt="d", linewidths=.5, ax=ax)
+    if title:
+        plt.title(title, fontweight='bold')
+
+    if ylabel:
+        plt.ylabel(ylabel)
+    else:
+        plt.ylabel(group1.name)
+
+    plt.xlabel(group2.name)
     plt.show()
     return
 
 #Contingency table/heat map functions - overall proportional
-def categorical_contigency_prop_whole(group1, group2):
+def categorical_contigency_prop_whole(group1, group2, title=None, yticks=None, ylabel=None, xticks=None):
     '''
     Function will combine two categorical variables into a contingency table, and then output a heatmap showing both the numbers and a color scheme to represent equality across the cells. Includes margins
     input group1, group2
     group1: categorical variable
     group2: categorical variable
+    title: title for entire chart 
+    yticks: labels for yticks
+    ylabel: y axis label
+    xticks: labels for xticks
     output: heatmap showing the contingency table with appropriate coloring
     Group here refers to categorical, but not individual level
     If there is an error, try switching group1 and group2'''
     data_contingency = pd.crosstab(group1, group2, margins = True, margins_name = 'Total')
+    
+
     columns = group1.unique()
     rows = group2.unique()
+
     df = pd.DataFrame()
     for i in rows:
         for j in columns:
             proportion = data_contingency[i][j]/data_contingency['Total']["Total"]
             df.loc[i,j]=proportion
     df=df.transpose()
+
+    if yticks:
+        df = df.rename(index=yticks)
+    if xticks:
+        df = df.rename(columns=xticks)
+    
     f, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(df, annot=True, fmt="f", linewidths=.5, ax=ax)
+    chart = sns.heatmap(df, annot=True, fmt="f", linewidths=.5, ax=ax)
+    if title:
+        plt.title(title, fontweight='bold')
+
+    if ylabel:
+        plt.ylabel(ylabel)
+    else:
+        plt.ylabel(group1.name)
+
+    plt.xlabel(group2.name)
     plt.show()
-    return
+    return 
 
 #Contingency table/heat map functions - column proportional
 def categorical_contigency_prop_col(group1, group2):
@@ -265,124 +320,167 @@ print(summary_stats.to_markdown())
 
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
+xticks = ([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
+legend_labels_sex = ['Female', 'Male']
+xlabel = 'Diabetes Status'
 # BMI vs. Diabetes_012 by Sex and Income
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Income', col_wrap=4, legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
 
 # BMI vs. Diabetes_012 by Sex and HighBP
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
 # BMI vs. Diabetes_012 by Sex and HighChol
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+col_labels_chol = ['No High Cholesterol', 'Has High Cholesterol']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
 
 # BMI vs. Diabetes_012 by Sex and PhysActivity
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+col_labels_phys = ['Not Physically Active', 'Physically Active']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
 
 # Age vs. Diabetes_012 by Sex and Income
-sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Income', col_wrap=4, legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
+            xticks=xticks, title='Age vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
 
 # Age vs. Diabetes_012 by Sex and HighBP
-sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighBP', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
+            xticks=xticks, title='Age vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
 # Age vs. Diabetes_012 by Sex and HighChol
-sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
 
 # Age vs. Diabetes_012 by Sex and PhysActivity
-sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
-            xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
+sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
             
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
+yticks={0: 'No Diabetes', 1: 'Pre Diabetes', 2: 'Has Diabetes'} #([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
+ylabel = 'Diabetes Status'
 
 #Diabetes status by blood pressure - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighBP)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighBP)
+chart_title = 'Diabetes Status vs. High Blood Pressue'
+xticks = {0:'No High Blood Pressure', 1: 'Has High Blood Pressure'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighBP, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighBP, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.HighBP)
 
 #Diabetes status by Sex - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Sex)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Sex)
+chart_title = 'Diabetes Status vs. Sex'
+xticks = {0:'Female', 1:'Male'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Sex, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Sex, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Sex)
 
 #Diabetes status by HighChol - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighChol)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighChol)
+chart_title = 'Diabetes Status vs. High Cholesterol'
+xticks = {0: 'No High Cholesterol', 1: 'Has High Cholesterol'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighChol, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighChol, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.HighChol)
 
 #Diabetes status by CholCheck - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.CholCheck)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.CholCheck)
+chart_title = 'Diabetes Status vs. Cholesterol Check'
+xticks = {0: 'Not Checked in Last 5yrs', 1: 'Has Checked in Last 5yrs'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.CholCheck, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.CholCheck, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.CholCheck)
 
 #Diabetes status by Smoker - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Smoker)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Smoker)
+chart_title = 'Diabetes Status vs. Smoker Status'
+xticks = {0: 'Non Smoker' , 1: 'Smoker'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Smoker, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Smoker, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Smoker)
 
 #Diabetes status by Stroke - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Stroke)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Stroke)
+chart_title = 'Diabetes Status vs. Stroke'
+xticks = {0: 'No Stroke' , 1: 'Stroke'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Stroke, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Stroke, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Stroke)
 
 #Diabetes status by HeartDiseaseorAttack - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
+chart_title = 'Diabetes Status vs. Heart Disease'
+xticks = {0: 'No Heart Disease' , 1: 'Heart Disease'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
 
 #Diabetes status by PhysActivity - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.PhysActivity)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.PhysActivity)
+chart_title = 'Diabetes Status vs. Physical Activity'
+xticks = {0: 'Not Physically Activity' , 1: 'Physically Active'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.PhysActivity, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.PhysActivity, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.PhysActivity)
 
 #Diabetes status by Fruits - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Fruits)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Fruits)
+chart_title = 'Diabetes Status vs. Fruits'
+xticks = {0: 'Does Not Eat Fruit' , 1: 'Eats Fruit'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Fruits, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Fruits, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Fruits)
 
 #Diabetes status by Veggies - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Veggies)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Veggies)
+chart_title = 'Diabetes Status vs. Veggies'
+xticks = {0: 'Does Not Eat Veggies' , 1: 'Eats Veggies'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Veggies, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Veggies, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Veggies)
 
 #Diabetes status by HvyAlcoholConsump - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
+chart_title = 'Diabetes Status vs. Heavy Alcohol Consumption'
+xticks = {0: 'Non Heavy Drinker' , 1: 'Heavy Drinker'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
 
 #Diabetes status by AnyHealthcare - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.AnyHealthcare)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.AnyHealthcare)
+chart_title = 'Diabetes Status vs. Health Care Status'
+xticks = {0: 'No Health Care' , 1: 'Has Health Care'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.AnyHealthcare, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.AnyHealthcare, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.AnyHealthcare)
 
 #Diabetes status by NoDocbcCost - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.NoDocbcCost)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.NoDocbcCost)
+chart_title = 'Diabetes Status vs. Medical/Doctor Costs'
+xticks = {0: 'Can Afford' , 1: 'Cannot Afford'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.NoDocbcCost, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.NoDocbcCost, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.NoDocbcCost)
 
 #Diabetes status by GenHlth - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.GenHlth)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.GenHlth)
+chart_title = 'Diabetes Status vs. General Health'
+xticks = {1: 'Excellent', 2: 'Very Good', 3: 'Good', 4: 'Fair', 5: 'Poor'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.GenHlth, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.GenHlth, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.GenHlth)
 
 #Diabetes status by DiffWalk - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.DiffWalk)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.DiffWalk)
+chart_title = 'Diabetes Status vs. Difficulty Walking'
+xticks = {0: 'No Difficulty' , 1: 'Has Difficulty'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.DiffWalk, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.DiffWalk, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.DiffWalk)
 
 #Diabetes status by Education - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Education)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Education)
+chart_title = 'Diabetes Status vs. Education'
+xticks = {1: 'Never Attended', 2: 'Elementary', 3: 'Some High School', 4: 'High School Graduate', 5: 'Some College', 6: 'College Graduate'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Education, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Education, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Education)
 
 #Diabetes status by Income - Heat Map and Chi-Square test (Significant)
-categorical_contigency_base(diabetes.Diabetes_012, diabetes.Income)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Income)
+chart_title = 'Diabetes Status vs. Income'
+xticks = {1: '< $10,000', 2: '< $15,000', 3: '< $20,000', 4: '< $25,000', 5: '< $35,000', 6: '< $50,000', 7: '< $75,000', 8: '> $75,000'}
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Income, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Income, title=chart_title, yticks=yticks, ylabel=ylabel, xticks=xticks)
 chi_square_test(diabetes.Diabetes_012, diabetes.Income)
 
 #Diabetes by Age - Z-Tests (All Significant)
@@ -439,7 +537,7 @@ print(diabetes_logit.predict_proba(xdiabetestest[:8]))
 def predictcutoff(arr, cutoff):
   arrbool = arr[:,1]>cutoff
   arr= arr[:,1]*arrbool/arr[:,1]
-  return arr.astype(int)
+  return arr.asStatus(int)
 
 test = diabetes_logit.predict_proba(xdiabetestest)
 p = predictcutoff(test, 0.1)
@@ -450,7 +548,7 @@ predictcutoff(test, 0.2)
 predictcutoff(test, 0.5)
 
 cut_off = 1
-predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).astype(int)
+predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).asStatus(int)
 print(predictions)
 
 
@@ -466,7 +564,8 @@ ns_probs = [0 for _ in range(len(ydiabetestest))]
 lr_probs = diabetes_logit.predict_proba(xdiabetestest)
 # keep probabilities for the positive outcome only
 lr_probs = lr_probs[:, 1]
-# calculate for all response types
+# calculate for all response Status
+diabetes_response = ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']
 for response in range(3):
     # calculate roc scores
     ns_auc = roc_auc_score(ydiabetestest1[:,response], ns_probs)
@@ -488,6 +587,8 @@ for response in range(3):
     plt.ylabel('True Positive Rate')
     # show the legend
     plt.legend()
+    # title
+    plt.title('ROC Curve: ' + diabetes_response[response],fontweight='bold')
     # show the plot
     plt.show()
 
