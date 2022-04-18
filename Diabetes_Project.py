@@ -115,8 +115,12 @@ def categorical_contigency_base(group1, group2):
     data_contingency = pd.crosstab(group1, group2, margins = True, margins_name = 'Total')
     print(data_contingency)
     data_contingency=pd.crosstab(group1, group2, margins = False, margins_name = 'Total')
-    f, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(data_contingency, annot=True, fmt="d", linewidths=.5, ax=ax)
+    f, ax = plt.subplots(dpi=100, figsize=(14, 7))
+    #sns.heatmap(data_contingency, annot=True, fmt="d", linewidths=.5, ax=ax)
+    res = sns.heatmap(pd.crosstab(group1, group2,), annot=True, fmt="d", linewidths = 0.5, cbar=False, ax=ax)
+    res.set_xticklabels(res.get_xmajorticklabels(), fontsize = 18)
+    res.set_yticklabels(res.get_ymajorticklabels(), fontsize = 18)
+    plt.savefig('data_table.png')
     plt.show()
     return
 
@@ -261,8 +265,8 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
-
-
+diabetes.head()
+diabetes.Diabetes_012.value_counts()
 #%%
 #Let's add some summary visualizations here using our few continuous variables. We can put Diabetes_012 as the color and use shape for some other things, or we can make violin plots with diabetes_012 as the splits and maybe do double splits
 # BMI vs. Diabetes_012 by Sex and Income
@@ -296,99 +300,128 @@ sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='HighChol', legend_l
 # Age vs. Diabetes_012 by Sex and PhysActivity
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='PhysActivity', legend_labels=['Male', 'Female'],
             xticks=([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes']))
-            
+
 #%%
 #Let's do some contingency tables/heat maps here and could consider proportions.
 
 #Diabetes status by blood pressure - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighBP)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighBP)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.HighBP)
 chi_square_test(diabetes.Diabetes_012, diabetes.HighBP)
 
 #Diabetes status by Sex - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Sex)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Sex)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Sex)
 chi_square_test(diabetes.Diabetes_012, diabetes.Sex)
 
 #Diabetes status by HighChol - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.HighChol)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HighChol)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.HighChol)
 chi_square_test(diabetes.Diabetes_012, diabetes.HighChol)
 
 #Diabetes status by CholCheck - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.CholCheck)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.CholCheck)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.CholCheck)
 chi_square_test(diabetes.Diabetes_012, diabetes.CholCheck)
 
 #Diabetes status by Smoker - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Smoker)
-categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Smoker)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Smoker)  
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Smoker)
 chi_square_test(diabetes.Diabetes_012, diabetes.Smoker)
 
 #Diabetes status by Stroke - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Stroke)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Stroke)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Stroke)
 chi_square_test(diabetes.Diabetes_012, diabetes.Stroke)
 
 #Diabetes status by HeartDiseaseorAttack - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
 chi_square_test(diabetes.Diabetes_012, diabetes.HeartDiseaseorAttack)
 
 #Diabetes status by PhysActivity - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.PhysActivity)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.PhysActivity)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.PhysActivity)
 chi_square_test(diabetes.Diabetes_012, diabetes.PhysActivity)
 
 #Diabetes status by Fruits - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Fruits)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Fruits)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Fruits)
 chi_square_test(diabetes.Diabetes_012, diabetes.Fruits)
 
 #Diabetes status by Veggies - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Veggies)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Veggies)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Veggies)
 chi_square_test(diabetes.Diabetes_012, diabetes.Veggies)
 
 #Diabetes status by HvyAlcoholConsump - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
 chi_square_test(diabetes.Diabetes_012, diabetes.HvyAlcoholConsump)
 
 #Diabetes status by AnyHealthcare - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.AnyHealthcare)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.AnyHealthcare)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.AnyHealthcare)
 chi_square_test(diabetes.Diabetes_012, diabetes.AnyHealthcare)
 
 #Diabetes status by NoDocbcCost - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.NoDocbcCost)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.NoDocbcCost)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.NoDocbcCost)
 chi_square_test(diabetes.Diabetes_012, diabetes.NoDocbcCost)
 
 #Diabetes status by GenHlth - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.GenHlth)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.GenHlth)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.GenHlth)
 chi_square_test(diabetes.Diabetes_012, diabetes.GenHlth)
 
 #Diabetes status by DiffWalk - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.DiffWalk)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.DiffWalk)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.DiffWalk)
 chi_square_test(diabetes.Diabetes_012, diabetes.DiffWalk)
 
 #Diabetes status by Education - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Education)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Education)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Education)
 chi_square_test(diabetes.Diabetes_012, diabetes.Education)
 
 #Diabetes status by Income - Heat Map and Chi-Square test (Significant)
 categorical_contigency_base(diabetes.Diabetes_012, diabetes.Income)
 categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Income)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Income)
 chi_square_test(diabetes.Diabetes_012, diabetes.Income)
 
-#Diabetes by Age - Z-Tests (All Significant)
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==1]['Age'], diabetes[diabetes['Diabetes_012']==2]['Age'])
+#Diabetes status by Age - Heat Map and Chi-Square test (Significant)
+categorical_contigency_base(diabetes.Diabetes_012, diabetes.Age)
+categorical_contigency_prop_whole(diabetes.Diabetes_012, diabetes.Age)
+categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Age)
+chi_square_test(diabetes.Diabetes_012, diabetes.Age)
+
+
+#Diabetes by Mental Health - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==1]['MentHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth']) #not statistically different
+
+#Diabetes by Physical Health - Z-Tests (All Significant)
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==1]['PhysHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
+two_sample_test(diabetes[diabetes['Diabetes_012']==1]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
 
 #Diabetes by BMI - Z-Tests (All Significant)
 two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
@@ -416,14 +449,14 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #%%
 #First, let's build a basic logistic regression, we'll need to either use sklearn or the function Prof. Lo gave us in quiz 3 for a multinomial response variable
 #Model Building - Logistic
-model_diabetes1 = mnlogit(formula='Diabetes_012 ~ HighBP + HighChol + CholCheck + BMI + Smoker + Stroke + HeartDiseaseorAttack + PhysActivity + Fruits + Veggies + HvyAlcoholConsump + AnyHealthcare + NoDocbcCost + GenHlth + MentHlth + PhysHlth + DiffWalk + Sex + Age + Education + Income', data=diabetes)
+model_diabetes1 = mnlogit(formula='Diabetes_012 ~ C(HighBP) + C(HighChol) + C(CholCheck) + BMI + C(Smoker) + C(Stroke) + C(HeartDiseaseorAttack) + C(PhysActivity) + C(Fruits) + C(Veggies) + C(HvyAlcoholConsump) + C(AnyHealthcare) + C(NoDocbcCost) + C(GenHlth) + MentHlth + PhysHlth + C(DiffWalk) + C(Sex) + C(Age) + C(Education) + C(Income)', data=diabetes)
 
 #Model summary information (including pseudo-R^2)
 model_diabetes1_fit = model_diabetes1.fit()
 print( model_diabetes1_fit.summary() )
-modelpredicitons = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
-modelpredicitons.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
-print(modelpredicitons.head())
+modelpredictions = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
+modelpredictions.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabetes'}, inplace=True)
+print(modelpredictions.head())
 
 
 #Sklearn
@@ -457,6 +490,7 @@ print(predictions)
 # Classification Report
 #
 y_true, y_pred = ydiabetestest, diabetes_logit.predict(xdiabetestest)
+print("Confusion Matrix: \n", confusion_matrix(y_true, y_pred))
 print(classification_report(y_true, y_pred))
 #%%
 #ROC-AUC
@@ -465,12 +499,12 @@ ns_probs = [0 for _ in range(len(ydiabetestest))]
 # predict probabilities
 lr_probs = diabetes_logit.predict_proba(xdiabetestest)
 # keep probabilities for the positive outcome only
-lr_probs = lr_probs[:, 1]
+#lr_probs = lr_probs[:, 1]
 # calculate for all response types
 for response in range(3):
     # calculate roc scores
     ns_auc = roc_auc_score(ydiabetestest1[:,response], ns_probs)
-    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs)
+    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs[:,response])
 
     # summarize scores
     print('No Skill: ROC AUC=%.3f' % (ns_auc))
@@ -478,7 +512,7 @@ for response in range(3):
 
     # calculate roc curves
     ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest1[:,response], ns_probs)
-    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs)
+    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs[:,response])
 
     # plot the roc curve for the model
     plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
