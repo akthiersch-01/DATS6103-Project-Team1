@@ -431,15 +431,14 @@ diabetes_logit = LogisticRegression()
 diabetes_logit.fit(xdiabetestrain, ydiabetestrain)
 print('Logit model accuracy (with the test set):', diabetes_logit.score(xdiabetestest, ydiabetestest))
 print('Logit model accuracy (with the train set):', diabetes_logit.score(xdiabetestrain, ydiabetestrain))
-print(diabetes_logit.predict(xdiabetestrain))
+print(diabetes_logit.predict(xdiabetestest))
 print(diabetes_logit.predict_proba(xdiabetestrain[:8]))
-print(diabetes_logit.predict_proba(xdiabetestrain[:8]))
+print(diabetes_logit.predict_proba(xdiabetestest[:8]))
 
 #Loop with different cutoff values showing score and confusion matrix
 def predictcutoff(arr, cutoff):
   arrbool = arr[:,1]>cutoff
   arr= arr[:,1]*arrbool/arr[:,1]
-  # arr= arr[:,1]*arrbool
   return arr.astype(int)
 
 test = diabetes_logit.predict_proba(xdiabetestest)
@@ -459,7 +458,7 @@ print(predictions)
 #
 y_true, y_pred = ydiabetestest, diabetes_logit.predict(xdiabetestest)
 print(classification_report(y_true, y_pred))
-
+#%%
 #ROC-AUC
 # generate a no skill prediction (majority class)
 ns_probs = [0 for _ in range(len(ydiabetestest))]
@@ -467,25 +466,30 @@ ns_probs = [0 for _ in range(len(ydiabetestest))]
 lr_probs = diabetes_logit.predict_proba(xdiabetestest)
 # keep probabilities for the positive outcome only
 lr_probs = lr_probs[:, 1]
-# calculate scores
-ns_auc = roc_auc_score(ydiabetestest, ns_probs)
-lr_auc = roc_auc_score(ydiabetestest, lr_probs)
-# summarize scores
-print('No Skill: ROC AUC=%.3f' % (ns_auc))
-print('Logistic: ROC AUC=%.3f' % (lr_auc))
-# calculate roc curves
-ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest, ns_probs)
-lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest, lr_probs)
-# plot the roc curve for the model
-plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
-plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
-# axis labels
-plt.xlabel('False Positive Rate')
-plt.ylabel('True Positive Rate')
-# show the legend
-plt.legend()
-# show the plot
-plt.show()
+# calculate for all response types
+for response in range(3):
+    # calculate roc scores
+    ns_auc = roc_auc_score(ydiabetestest1[:,response], ns_probs)
+    lr_auc = roc_auc_score(ydiabetestest1[:, response], lr_probs)
+
+    # summarize scores
+    print('No Skill: ROC AUC=%.3f' % (ns_auc))
+    print('Logistic: ROC AUC=%.3f' % (lr_auc))
+
+    # calculate roc curves
+    ns_fpr, ns_tpr, _ = roc_curve(ydiabetestest1[:,response], ns_probs)
+    lr_fpr, lr_tpr, _ = roc_curve(ydiabetestest1[:, response], lr_probs)
+
+    # plot the roc curve for the model
+    plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    # axis labels
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    # show the legend
+    plt.legend()
+    # show the plot
+    plt.show()
 
 
 #%%
