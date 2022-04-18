@@ -533,6 +533,7 @@ fi_df = pd.DataFrame(data)
 fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
 print(fi_df)
 
+
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
 
 # Fit dt to the training set
@@ -588,6 +589,7 @@ y_pred_score = rf1.decision_function(xdiabetestest)
 rf2 = OneVsRestClassifier(SVC(kernel='linear', C=1.0, random_state=0))
 
 # Fit dt to the training set
+#This one doesn't run, compute needs are too high
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.decision_function(xdiabetestest1)
@@ -608,7 +610,7 @@ fpr = dict()
 tpr = dict()
 roc_auc = dict()
 for i in range(n_classes):
-    fpr[i], tpr[i], _ = roc_curve(ydiabetestest1[:, i], y_pred_score1[:, i])
+    fpr[i], tpr[i], _ = roc_curve(ydiabetestest[:, i], y_pred_score[:, i])
     roc_auc[i] = auc(fpr[i], tpr[i])
     print(f'AUC value of {i} class:{roc_auc[i]}')
 
