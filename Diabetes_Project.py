@@ -602,7 +602,17 @@ rf1 = RandomForestClassifier(n_estimators=100)
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
-importance = rf2.feature_importances_
+
+# importance = rf1.estimators_[2].feature_importances_
+# for i,v in enumerate(importance):
+# 	print('Feature: %0d, Score: %.5f' % (i,v))
+rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
+
+# Fit dt to the training set
+rf2.fit(xdiabetestrain1, ydiabetestrain1)
+y_test_pred1 = rf2.predict(xdiabetestest1)
+y_pred_score1 = rf2.predict_proba(xdiabetestest1)
+importance = rf2.estimators_[2].feature_importances_
 feature_importance = np.array(importance)
 feature_names = np.array(xdiabetestrain.columns)
 
