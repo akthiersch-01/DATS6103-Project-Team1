@@ -745,7 +745,9 @@ for i in [3,5,7,9,11]:
     knn_Diet.fit(xdiabetestrain, ydiabetestrain)
     print(f'{i}-NN model accuracy (with the test set):', knn_Diet.score(xdiabetestest, ydiabetestest))
     #print(f'{i}-NN model accuracy (with the train set):', knn_Diet.score(xdiabetestrain, ydiabetestrain))
+    y_preds=knn_Diet.predict(xdiabetestest)
     y_pred_score1 = knn_Diet.predict_proba(xdiabetestest)
+    print (confusion_matrix(ydiabetestest, y_preds))
     n_classes=3
     fpr = dict()
     tpr = dict()
@@ -754,7 +756,7 @@ for i in [3,5,7,9,11]:
         fpr[j], tpr[j], _ = roc_curve(ydiabetestest1[:, j], y_pred_score1[:, j])
         roc_auc[j] = auc(fpr[j], tpr[j])
         print(f'AUC value of {j} class:{roc_auc[j]}')
-
+    
     # Plot of a KNN ROC curve for a specific class
     for j in range(n_classes):
         plt.figure()
