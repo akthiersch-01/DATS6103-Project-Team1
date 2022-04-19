@@ -358,7 +358,7 @@ violin_plot_func(diabetes, 'Diabetes_012', 'BMI', hue='Sex', legend_labels=legen
 
 #PhysHlth vs. Diabetes_012 by Sex
 violin_plot_func(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel)
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Sex', xlabel=xlabel)
 
 # BMI vs. Diabetes_012 by Sex and Income
 col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
