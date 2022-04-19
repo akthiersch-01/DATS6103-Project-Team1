@@ -42,21 +42,41 @@ warnings.filterwarnings('always')
 #Let's define some key functions here that'll help us throughout the rest of this
 
 #Violin plot function
-def violin_plot_func(data, cat_col, cont_col):
+def violin_plot_func(data, cat_col, cont_col, hue=None, split=False, legend_labels=None, xticks=None, title=None, xlabel=None):
     '''
     Function will take in a dataset and two column names, one categorical and one continuous
     Data: name of pandas dataframe containing the columns
     cat_col: name of column that will be used to split the violin plots
     cont_col: continuous function'''
-    for i in range(len(data[cat_col].unique())):
-        globals()['group%s' % i] = data[data[cat_col]==i]
-    cat_list = []
-    for i in range(len(data[cat_col].unique())):
-        cat_list.append(list(globals()['group%s' % i][cont_col]))
-    pos = np.arange(1,len(data[cat_col].unique())+1)
-    pos_list = np.ndarray.tolist(pos)
-    plt.violinplot(cat_list, positions = pos_list)
-    plt.xlabel(cat_col)
+    # check if hue is set
+    if hue:
+        hue = hue
+        if data[hue].unique().size == 2:
+            split = True
+
+    # create violin
+    sns.set_palette('hls')
+    chart = sns.violinplot(data=data, x=cat_col, y=cont_col, hue=hue, split=split)
+
+    # edit legend labels if provided
+    if legend_labels:
+        for index in range(len(legend_labels)):
+            chart.legend_.texts[index].set_text(legend_labels[index])
+
+    # edit xticks if provided
+    if xticks:
+        plt.xticks(xticks[0], xticks[1])
+
+    # add title if provided
+    if title:
+        plt.suptitle(title, fontweight='bold')
+        plt.subplots_adjust(top=0.9)
+
+    if xlabel:
+        plt.xlabel(xlabel)
+    else:
+        plt.xlabel(cat_col)
+
     plt.ylabel(cont_col)
     plt.show()
 
@@ -330,10 +350,24 @@ diabetes.Diabetes_012.value_counts()
 xticks = ([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
 legend_labels_sex = ['Female', 'Male']
 xlabel = 'Diabetes Status'
+
+#BMI vs. Diabetes_012 by Sex
+violin_plot_func(diabetes, 'Diabetes_012', 'BMI', hue='Sex', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel)
+
+#PhysHlth vs. Diabetes_012 by Sex
+violin_plot_func(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel)
+
 # BMI vs. Diabetes_012 by Sex and Income
 col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
 sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
+
+# BMI vs. Diabetes_012 by Sex and HighBP
+col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
 # BMI vs. Diabetes_012 by Sex and HighBP
 col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
@@ -357,6 +391,12 @@ sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_l
 col_labels_phys = ['Not Physically Active', 'Physically Active']
 sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+
+# PhysHlth vs. Diabetes_012 by Sex and PhysActivity
+col_labels_phys = ['Not Physically Active', 'Physically Active']
+sns_catplot(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+
 
 # Age vs. Diabetes_012 by Sex and Income
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
