@@ -60,6 +60,7 @@ def violin_plot_func(data, cat_col, cont_col, hue=None, split=False, legend_labe
 
     # edit legend labels if provided
     if legend_labels:
+        chart.legend(title=hue, loc='upper left', bbox_to_anchor=(1.05, 1.0))
         for index in range(len(legend_labels)):
             chart.legend_.texts[index].set_text(legend_labels[index])
 
@@ -763,14 +764,18 @@ for response in range(3):
     ns_fpr, ns_tpr, _ = roc_curve(ydiabetes_smalltest1[:,response], ns_probs)
     lr_fpr, lr_tpr, _ = roc_curve(ydiabetes_smalltest1[:, response], lr_probs[:,response])
 
+    area_curve = auc(lr_fpr, lr_tpr)
+
     # plot the roc curve for the model
     plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
-    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic (area = %0.2f)' % area_curve)
     # axis labels
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     # show the legend
     plt.legend()
+    # plot title
+    plt.title('ROC Curve: ' + diabetes_response[response],fontweight='bold')
     # show the plot
     plt.show()
 
