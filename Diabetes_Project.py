@@ -242,10 +242,24 @@ diabetes.Diabetes_012.value_counts()
 xticks = ([0, 1, 2], ['No Diabetes', 'Pre Diabetes', 'Has Diabetes'])
 legend_labels_sex = ['Female', 'Male']
 xlabel = 'Diabetes Status'
+
+#BMI vs. Diabetes_012 by Sex
+violin_plot_func(diabetes, 'Diabetes_012', 'BMI', hue='Sex', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel)
+
+#PhysHlth vs. Diabetes_012 by Sex
+violin_plot_func(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', legend_labels=legend_labels_sex,
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Sex', xlabel=xlabel)
+
 # BMI vs. Diabetes_012 by Sex and Income
 col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
 sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
+
+# BMI vs. Diabetes_012 by Sex and HighBP
+col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
 # BMI vs. Diabetes_012 by Sex and HighBP
 col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
@@ -269,6 +283,12 @@ sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_l
 col_labels_phys = ['Not Physically Active', 'Physically Active']
 sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+
+# PhysHlth vs. Diabetes_012 by Sex and PhysActivity
+col_labels_phys = ['Not Physically Active', 'Physically Active']
+sns_catplot(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+
 
 # Age vs. Diabetes_012 by Sex and Income
 sns_catplot(diabetes, 'Diabetes_012', 'Age', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
@@ -644,14 +664,18 @@ for response in range(3):
     ns_fpr, ns_tpr, _ = roc_curve(ydiabetes_smalltest1[:,response], ns_probs)
     lr_fpr, lr_tpr, _ = roc_curve(ydiabetes_smalltest1[:, response], lr_probs[:,response])
 
+    area_curve = auc(lr_fpr, lr_tpr)
+
     # plot the roc curve for the model
     plt.plot(ns_fpr, ns_tpr, linestyle='--', label='No Skill')
-    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic')
+    plt.plot(lr_fpr, lr_tpr, marker='.', label='Logistic (area = %0.2f)' % area_curve)
     # axis labels
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
     # show the legend
     plt.legend()
+    # plot title
+    plt.title('ROC Curve: ' + diabetes_response[response],fontweight='bold')
     # show the plot
     plt.show()
 
