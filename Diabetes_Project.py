@@ -1,19 +1,12 @@
 #%%
 #Import packages
-from audioop import mul
-from doctest import DocFileSuite
-from tkinter import Label
 import numpy as np
 import pandas as pd
-import os
-import mlxtend
-from pyparsing import col
 import seaborn as sns
 import matplotlib.pyplot as plt
-import math
 import scipy.stats as stats
-import tabulate
-from sklearn.preprocessing import LabelBinarizer, LabelEncoder
+import warnings
+from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import label_binarize
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.model_selection import train_test_split
@@ -22,44 +15,21 @@ from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.linear_model import LogisticRegression
-from mlxtend.plotting import plot_decision_regions
-from sklearn import linear_model
-from sklearn.svm import SVC, LinearSVC
+from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import cross_val_score
 from statsmodels.stats.weightstats import ztest as ztest
-import statsmodels.api as sm
-from statsmodels.formula.api import mnlogit, glm
+from statsmodels.formula.api import mnlogit
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.metrics import roc_curve, auc
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn import preprocessing
-import warnings
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
 warnings.filterwarnings('always')
 
 #%%
 #Let's define some key functions here that'll help us throughout the rest of this
-
-#Violin plot function
-def violin_plot_func(data, cat_col, cont_col):
-    '''
-    Function will take in a dataset and two column names, one categorical and one continuous
-    Data: name of pandas dataframe containing the columns
-    cat_col: name of column that will be used to split the violin plots
-    cont_col: continuous function'''
-    for i in range(len(data[cat_col].unique())):
-        globals()['group%s' % i] = data[data[cat_col]==i]
-    cat_list = []
-    for i in range(len(data[cat_col].unique())):
-        cat_list.append(list(globals()['group%s' % i][cont_col]))
-    pos = np.arange(1,len(data[cat_col].unique())+1)
-    pos_list = np.ndarray.tolist(pos)
-    plt.violinplot(cat_list, positions = pos_list)
-    plt.xlabel(cat_col)
-    plt.ylabel(cont_col)
-    plt.show()
-
 
 #Category plot function
 def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, col=None, col_wrap=2, legend_labels=None,
@@ -206,30 +176,6 @@ def categorical_contigency_prop_whole(group1, group2, title=None, yticks=None, y
     plt.show()
     return 
 
-#Contingency table/heat map functions - column proportional
-def categorical_contigency_prop_col(group1, group2):
-    '''
-    Function will combine two categorical variables into a contingency table, and then output a heatmap showing both the numbers and a color scheme to represent equality across the cells. Includes margins
-    input group1, group2
-    group1: categorical variable
-    group2: categorical variable
-    output: heatmap showing the contingency table with appropriate coloring
-    Group here refers to categorical, but not individual level'''
-    data_contingency = pd.crosstab(group1, group2, margins = True, margins_name = 'Total')
-    columns = group1.unique()
-    rows = group2.unique()
-    df = pd.DataFrame()
-    for i in rows:
-        for j in columns:
-            proportion = data_contingency[i][j]/data_contingency[i]["Total"]
-            df.loc[i,j]=proportion
-    df=df.transpose()
-    f, ax = plt.subplots(figsize=(9, 6))
-    sns.heatmap(df, annot=True, fmt="f", linewidths=.5, ax=ax)
-    plt.show()
-    return
-
-
 #Contingency table/heat map functions - row proportional
 def categorical_contigency_prop_row(group1, group2):
     '''
@@ -280,43 +226,9 @@ def chi_square_test(group1, group2, alpha = 0.05, decimals = 3):
     print("chisquare-score is:", round(chi_square,decimals), " and p value is:", round(p_value,decimals))
     return(conclusion)
 
-#two sample Z-test function (for testing impact of continuous data based on diabetes_012)
-def two_sample_test(group1, group2, alpha = 0.05, decimals = 3):
-    '''
-    input group1, group 2, alpha, decimals
-    group 1: qualitative variable corresponding to the first group (ie female)
-    group 2: qualitative variable corresponding to the second group (ie male)
-    alpha: cutoff for p-value, number between 0 and 1, defaults to 0.05 or a 5% cutoff
-    decimals: preferred rounding number for z-score and p-value
-    outputs: z_score and p_value, plus hypothesis testing determination
-    Note: If there are more than 2 levels of a category, it is necessary to run the function for each respective pair of values
-    '''
-    ztest_vals = ztest(group1, group2)
-    z_stat = round(ztest_vals[0],decimals)
-    p_value = round(ztest_vals[1],decimals)
-    if p_value < 0.05:
-        
-        print (f"Your z-score was {z_stat} and your p-value was  {p_value}, which is less than 0.05. We therefore reject our null hypothesis")
-    else:
-        print (f"Your z-score was {z_stat} and your p-value was  {p_value}, which is greater than 0.05. We therefore fail to reject our null hypothesis")
-    return 
-
-
-
-
 #%%
 #Read in csv
 diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
-
-#Testing the functions work
-# categorical_contigency_base(diabetes['Diabetes_012'], diabetes['HighBP'])
-# categorical_contigency_prop_whole(diabetes['Diabetes_012'], diabetes['HighBP'])
-# categorical_contigency_prop_col(diabetes['Diabetes_012'], diabetes['HighBP'])
-# categorical_contigency_prop_row(diabetes['Diabetes_012'], diabetes['HighBP'])
-# chi_square_test(diabetes['Diabetes_012'], diabetes['HighBP'])
-# violin_plot_func(diabetes, 'Diabetes_012', 'Age')
-# two_sample_test(diabetes[diabetes['Diabetes_012']==0]['Age'], diabetes[diabetes['Diabetes_012']==1]['Age'])
-
 
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
@@ -519,23 +431,35 @@ categorical_contigency_prop_row(diabetes.Diabetes_012, diabetes.Age)
 chi_square_test(diabetes.Diabetes_012, diabetes.Age)
 
 
-#Diabetes by Mental Health - Z-Tests (All Significant)
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==1]['MentHlth'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==1]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth']) #not statistically different
+#Diabetes by Mental Health - 2 significant
+#One-Way ANOVA
+f_oneway(diabetes[diabetes['Diabetes_012']==0]['MentHlth'], diabetes[diabetes['Diabetes_012']==1]['MentHlth'], diabetes[diabetes['Diabetes_012']==2]['MentHlth'])
 
-#Diabetes by Physical Health - Z-Tests (All Significant)
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==1]['PhysHlth'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==1]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
+#Given significance, we run a Tukey to control for family variance
+tukey = pairwise_tukeyhsd(endog=diabetes['MentHlth'], groups=diabetes['Diabetes_012'], alpha=0.05)
+print(tukey)
 
-#Diabetes by BMI - Z-Tests (All Significant)
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
-two_sample_test(diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+#Diabetes by Physical Health - all significant
+#One-Way ANOVA
+f_oneway(diabetes[diabetes['Diabetes_012']==0]['PhysHlth'], diabetes[diabetes['Diabetes_012']==1]['PhysHlth'], diabetes[diabetes['Diabetes_012']==2]['PhysHlth'])
+
+
+#Given significance, we run a Tukey to control for family variance
+tukey = pairwise_tukeyhsd(endog=diabetes['PhysHlth'], groups=diabetes['Diabetes_012'], alpha=0.05)
+print(tukey)
+
+#Diabetes by BMI - all significant
+#One-Way ANOVA
+f_oneway(diabetes[diabetes['Diabetes_012']==0]['BMI'], diabetes[diabetes['Diabetes_012']==1]['BMI'], diabetes[diabetes['Diabetes_012']==2]['BMI'])
+
+
+#Given significance, we run a Tukey to control for family variance
+tukey = pairwise_tukeyhsd(endog=diabetes['BMI'], groups=diabetes['Diabetes_012'], alpha=0.05)
+print(tukey)
+
 
 #%%
-#Test/Train split - we have sufficient data to do a 9/1 or a 4/1 (probably a 4/1 since pre-diabetes is a relatively small category). Make sure we set the random state here so we can repeat it
+#Test/Train split, we will do a 4:1 split with a set random state
 
 xdiabetes = diabetes[
     ['HighBP', 'HighChol', 'CholCheck', 'BMI', 'Smoker', 'Stroke', 'HeartDiseaseorAttack', 
@@ -557,7 +481,7 @@ xdiabetestrain1, xdiabetestest1, ydiabetestrain1, ydiabetestest1 = train_test_sp
 #Model Building - Logistic
 model_diabetes1 = mnlogit(formula='Diabetes_012 ~ C(HighBP) + C(HighChol) + C(CholCheck) + BMI + C(Smoker) + C(Stroke) + C(HeartDiseaseorAttack) + C(PhysActivity) + C(Fruits) + C(Veggies) + C(HvyAlcoholConsump) + C(AnyHealthcare) + C(NoDocbcCost) + C(GenHlth) + MentHlth + PhysHlth + C(DiffWalk) + C(Sex) + C(Age) + C(Education) + C(Income)', data=diabetes)
 
-#Model summary information (including pseudo-R^2)
+#Model summary information
 model_diabetes1_fit = model_diabetes1.fit()
 print( model_diabetes1_fit.summary() )
 modelpredictions = pd.DataFrame(model_diabetes1_fit.predict(diabetes)) 
@@ -565,7 +489,7 @@ modelpredictions.rename(columns={0:'No Diabetes', 1:'Pre Diabetes', 2:'Has Diabe
 print(modelpredictions.head())
 
 
-#Sklearn
+#Sklearn for mor complex analysis
 diabetes_logit = LogisticRegression()
 diabetes_logit.fit(xdiabetestrain, ydiabetestrain)
 print('Logit model accuracy (with the test set):', diabetes_logit.score(xdiabetestest, ydiabetestest))
@@ -640,10 +564,10 @@ for response in range(3):
 
 
 #%%
-#Non-Full Logistic Regression Model
+#Non-Full Logistic Regression Model (run several times to simplify down to these variables)
 model_diabetes_small = mnlogit(formula='Diabetes_012 ~ C(HighBP) + C(HighChol) + C(CholCheck) + BMI + C(Stroke) + C(Veggies) + C(HvyAlcoholConsump) + C(NoDocbcCost) + C(GenHlth) + MentHlth + C(Sex) + C(Age)+ C(Income)', data=diabetes)
 
-#Model summary information (including pseudo-R^2)
+#Model summary information
 model_diabetes_small_fit = model_diabetes_small.fit()
 print( model_diabetes_small_fit.summary() )
 modelpredictions = pd.DataFrame(model_diabetes_small_fit.predict(diabetes)) 
@@ -664,8 +588,6 @@ xdiabetes_smalltrain, xdiabetes_smalltest, ydiabetes_smalltrain, ydiabetes_small
                                                                                 random_state=12345)
 xdiabetes_smalltrain1, xdiabetes_smalltest1, ydiabetes_smalltrain1, ydiabetes_smalltest1 = train_test_split(xdiabetes_small, ydiabetes_small1, train_size=.8,
                                                                                 random_state=12345)
-
-
 
 
 #Sklearn
@@ -707,8 +629,7 @@ print(classification_report(y_true_small, y_pred_small))
 ns_probs = [0 for _ in range(len(ydiabetes_smalltest))]
 # predict probabilities
 lr_probs = diabetes_small_logit.predict_proba(xdiabetes_smalltest)
-# keep probabilities for the positive outcome only
-#lr_probs = lr_probs[:, 1]
+
 # calculate for all response types
 for response in range(3):
     # calculate roc scores
@@ -736,9 +657,7 @@ for response in range(3):
 
 #%%
 #=====================KNN======================
-#This takes a VERY long time to run when we include the train parameters. I will comment them for sake of ease, but we can attempt them in the future if we need the scores
-
-
+#This takes a VERY long time to run when we include the train parameters. The code is available in the event someone wishes to run it, but I don't recommend it unless necessary
 
 for i in [3,5,7,9,11]:
     knn_Diet = KNeighborsClassifier(n_neighbors=i) # instantiate with n value given
@@ -773,8 +692,9 @@ for i in [3,5,7,9,11]:
 
 #%%
 #================Decision Tree=================
-# Max depth = 3
+#Initialize the model
 rf1 = DecisionTreeClassifier(max_depth=3, criterion='entropy', random_state=0)
+
 # Fit dt to the training set
 rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
@@ -797,8 +717,6 @@ rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
 
-
-
 print('Decision Tree results')
 
 # Evaluate test-set accuracy
@@ -808,7 +726,7 @@ print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred,))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
 
-
+#Plotting ROC curves
 n_classes=3
 fpr = dict()
 tpr = dict()
@@ -832,8 +750,7 @@ for i in range(n_classes):
     plt.show()
 
 
-
-# Max depth = 11 (10 gave us something, 11 was better)
+# Max depth = 11 (10 was ok, 11 was better, and 12 didn't show improvements from 11)
 rf1 = DecisionTreeClassifier(max_depth=11, criterion='entropy', random_state=0)
 # Fit dt to the training set
 rf1 = rf1.fit(xdiabetestrain, ydiabetestrain)
@@ -858,8 +775,6 @@ rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
 
-
-
 print('Decision Tree results')
 
 # Evaluate test-set accuracy
@@ -870,8 +785,7 @@ print("Confusion Matrix (Test): \n", confusion_matrix(ydiabetestest, y_test_pred
 print("Confusion Matrix (Train): \n", confusion_matrix(ydiabetestrain, y_train_pred,))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-
-
+#Plotting ROC curves
 n_classes=3
 fpr = dict()
 tpr = dict()
@@ -895,19 +809,13 @@ for i in range(n_classes):
     plt.show()
 #%%
 #==================Random Forest====================
-
-#Estimators = 100
-# Instantiate dtree
+# Instantiate Random Forest model
 rf1 = RandomForestClassifier(n_estimators=100)
 # Fit dt to the training set
 rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
 
-
-# importance = rf1.estimators_[2].feature_importances_
-# for i,v in enumerate(importance):
-# 	print('Feature: %0d, Score: %.5f' % (i,v))
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
 
 # Fit dt to the training set
@@ -926,14 +834,12 @@ fi_df = pd.DataFrame(data)
 fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
 print(fi_df)
 
-
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=100))
 
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
-
 
 print('Random forest results')
 
@@ -943,7 +849,7 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-
+#Plotting ROC Curves
 n_classes=3
 fpr = dict()
 tpr = dict()
@@ -966,9 +872,7 @@ for i in range(n_classes):
     plt.legend(loc="lower right")
     plt.show()
 
-
-
-#Estimators = 200 (50 didn't change much, but gave a slight improvement)
+#Estimators = 200
 # Instantiate dtree
 rf1 = RandomForestClassifier(n_estimators=200)
 # Fit dt to the training set
@@ -976,10 +880,6 @@ rf1.fit(xdiabetestrain, ydiabetestrain)
 y_test_pred = rf1.predict(xdiabetestest)
 y_pred_score = rf1.predict_proba(xdiabetestest)
 
-
-# importance = rf1.estimators_[2].feature_importances_
-# for i,v in enumerate(importance):
-# 	print('Feature: %0d, Score: %.5f' % (i,v))
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=200))
 
 # Fit dt to the training set
@@ -998,14 +898,12 @@ fi_df = pd.DataFrame(data)
 fi_df.sort_values(by=['feature_importance'], ascending=False,inplace=True)
 print(fi_df)
 
-
 rf2 = OneVsRestClassifier(RandomForestClassifier(n_estimators=50))
 
 # Fit dt to the training set
 rf2.fit(xdiabetestrain1, ydiabetestrain1)
 y_test_pred1 = rf2.predict(xdiabetestest1)
 y_pred_score1 = rf2.predict_proba(xdiabetestest1)
-
 
 print('Random forest results')
 
@@ -1015,7 +913,7 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-
+#Plotting ROC Curves
 n_classes=3
 fpr = dict()
 tpr = dict()
@@ -1039,7 +937,7 @@ for i in range(n_classes):
     plt.show()
 #%%
 #=================SVM(SVC)====================
-#Sometimes SVM can't solve the equation if there's a huge amount of data and/or predictors. We may be running into that here, so if this doesn't solve in a reasonable amount of time, we'll need to just leave the code commetned and write an acknowledgment of the computational limitations of the technique
+#It is possible to run the rf1 code in ~2 hours on an M1 chip, but the OneVsRestClassifier is too heavy without cloud computing power. The code is left here in the event someone wants to run this with higher computing power.
 
 xdiabetestrain = preprocessing.scale(xdiabetestrain)
 
@@ -1066,9 +964,7 @@ print("Accuracy score: ", accuracy_score(ydiabetestest, y_test_pred) * 100)
 print("Confusion Matrix: \n", confusion_matrix(ydiabetestest, y_test_pred))
 print("Classification report:\n", classification_report(ydiabetestest, y_test_pred))
 
-
-
-
+#Plotting ROC Curves
 n_classes=3
 fpr = dict()
 tpr = dict()
@@ -1090,6 +986,3 @@ for i in range(n_classes):
     plt.title('SVC ROC', fontweight='bold')
     plt.legend(loc="lower right")
     plt.show()
-
-#%%
-#Comparison of all models to determine which variables had the largest impacts and which model was best
