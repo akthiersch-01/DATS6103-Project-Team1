@@ -1,4 +1,10 @@
 #%%
+#Team 1: Cooper Atkins, Kowshik Bezawada, Alex Thiersch
+#Codes and Technical Analysis
+#DATS6103: Introduction to Data Mining
+#Date: 04/29/2022
+
+#%%
 #Import packages
 import numpy as np
 import pandas as pd
