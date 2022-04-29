@@ -266,30 +266,20 @@ col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
 sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
             xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
-# BMI vs. Diabetes_012 by Sex and HighBP
-col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
-
-# BMI vs. Diabetes_012 by Income and HighBP
+# PhysHlth vs. Diabetes_012 by Sex and Income
 col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='HighBP', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by High Blood Pressure and Income', xlabel=xlabel, col_labels=col_labels_inc)
+sns_catplot(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
 
-# BMI vs. Diabetes_012 by Sex and HighChol
-col_labels_chol = ['No High Cholesterol', 'Has High Cholesterol']
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='HighChol', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by High Cholesterol and Sex', xlabel=xlabel, col_labels=col_labels_chol)
+# MentHlth vs. Diabetes_012 by Sex and HighBP
+col_labels_bp = ['No High Blood Pressure', 'Has High Blood Pressure']
+sns_catplot(diabetes, 'Diabetes_012', 'MentHlth', hue='Sex', col='HighBP', legend_labels=legend_labels_sex,
+            xticks=xticks, title='MentHlth vs. Diabetes Status by High Blood Pressure and Sex', xlabel=xlabel, col_labels=col_labels_bp)
 
-# BMI vs. Diabetes_012 by Sex and PhysActivity
-col_labels_phys = ['Not Physically Active', 'Physically Active']
-sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
-
-# PhysHlth vs. Diabetes_012 by Sex and PhysActivity
-col_labels_phys = ['Not Physically Active', 'Physically Active']
-sns_catplot(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', col='PhysActivity', legend_labels=legend_labels_sex,
-            xticks=xticks, title='PhysHlth vs. Diabetes Status by Physical Activity and Sex', xlabel=xlabel, col_labels=col_labels_phys)
+# MentHlth vs. Diabetes_012 by Sex and Income
+col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
+sns_catplot(diabetes, 'Diabetes_012', 'MentHlth', hue='Sex', col='Income', col_wrap=4, legend_labels=legend_labels_sex,
+            xticks=xticks, title='MentHlth vs. Diabetes Status by Income and Sex', xlabel=xlabel, col_labels=col_labels_inc)
 
 
 #%%
