@@ -63,7 +63,7 @@ def sns_catplot(data, cat_col, cont_col, kind='violin', hue=None, split=False, c
 
     # create catplot
     sns.set_palette('hls')
-    chart = sns.catplot(data=data, x=cat_col, y=cont_col, kind=kind, hue=hue, split=split, col=col, col_wrap=col_wrap)
+    chart = sns.catplot(data=data, x=cat_col, y=cont_col, kind=kind, hue=hue, split=split, col=col, col_wrap=col_wrap, cut=0)
 
     # edit legend labels if provided
     if legend_labels:
@@ -244,16 +244,16 @@ legend_labels_sex = ['Female', 'Male']
 xlabel = 'Diabetes Status'
 
 #BMI vs. Diabetes_012 by Sex
-violin_plot_func(diabetes, 'Diabetes_012', 'BMI', hue='Sex', legend_labels=legend_labels_sex,
-            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel)
+sns_catplot(diabetes, 'Diabetes_012', 'BMI', hue='Sex', col=None, col_wrap=None, legend_labels=legend_labels_sex,
+            xticks=xticks, title='BMI vs. Diabetes Status by Sex', xlabel=xlabel, col_labels=None)
 
 #PhysHlth vs. Diabetes_012 by Sex
-violin_plot_func(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', legend_labels=legend_labels_sex,
-            xticks=xticks, title='PhysHlth vs. Diabetes Status by Sex', xlabel=xlabel)
+sns_catplot(diabetes, 'Diabetes_012', 'PhysHlth', hue='Sex', col=None, col_wrap=None, legend_labels=legend_labels_sex,
+            xticks=xticks, title='PhysHlth vs. Diabetes Status by Sex', xlabel=xlabel, col_labels=None)
 
 #MentHlth vs. Diabetes_012 by Sex
-violin_plot_func(diabetes, 'Diabetes_012', 'MentHlth', hue='Sex', legend_labels=legend_labels_sex,
-            xticks=xticks, title='MentHlth vs. Diabetes Status by Sex', xlabel=xlabel)
+sns_catplot(diabetes, 'Diabetes_012', 'MentHlth', hue='Sex', col=None, col_wrap=None, legend_labels=legend_labels_sex,
+            xticks=xticks, title='MentHlth vs. Diabetes Status by Sex', xlabel=xlabel, col_labels=None)
 
 # BMI vs. Diabetes_012 by Sex and Income
 col_labels_inc = ['Income: < $10,000', 'Income: < $15,000', 'Income: < $20,000', 'Income: < $25,000', 'Income: < $35,000', 'Income: < $50,000', 'Income: < $75,000', 'Income: > $75,000']
