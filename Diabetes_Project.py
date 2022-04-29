@@ -484,7 +484,7 @@ print(diabetes_logit.predict_proba(xdiabetestest[:8]))
 def predictcutoff(arr, cutoff):
   arrbool = arr[:,1]>cutoff
   arr= arr[:,1]*arrbool/arr[:,1]
-  return arr.asStatus(int)
+  return arr.astype(int)
 
 test = diabetes_logit.predict_proba(xdiabetestest)
 p = predictcutoff(test, 0.1)
@@ -495,7 +495,7 @@ predictcutoff(test, 0.2)
 predictcutoff(test, 0.5)
 
 cut_off = 1
-predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).asStatus(int)
+predictions = (diabetes_logit.predict_proba(xdiabetestest)[:,1]>cut_off).astype(int)
 print(predictions)
 
 
