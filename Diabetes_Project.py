@@ -232,6 +232,7 @@ diabetes = pd.read_csv('diabetes_012_health_indicators_BRFSS2015.csv')
 
 # %%
 #Let's add basic summary information here (proportions, averages, etc.)
+#To view a better display of the summary stats table click on Jupyter: Variables on the bottom and then find the dataframe called "summary_stats" after running this cell.
 summary_stats = pd.DataFrame(diabetes.describe())
 summary_stats = summary_stats.reset_index()
 print(summary_stats.to_markdown())
